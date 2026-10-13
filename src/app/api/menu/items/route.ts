@@ -41,7 +41,9 @@ export async function GET(req: NextRequest) {
       }
     }
 
-    let query = supabase.from('MenuItem').select('*')
+    let query = supabase
+      .from('MenuItem')
+      .select('*, category:MenuCategory(id, name, restaurantId, restaurant:Restaurant(id, name, city, deliveryFee, minOrder, imageUrl, isOpen))')
 
     if (categoryId) {
       query = query.eq('categoryId', categoryId)

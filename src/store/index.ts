@@ -18,3 +18,7 @@ export * from './thunks/fetch-my-restaurant-thunk'
 export * from './thunks/create-restaurant-thunk'
 export * from './thunks/update-restaurant-thunk'
 export * from './selectors/restaurant-selectors'
+
+// Order Thunks & Selectors
+export * from './thunks/order-thunks'
+export * from './selectors/order-selectors'

@@ -21,6 +21,7 @@ import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu'
 import LogoutIcon from '@mui/icons-material/Logout'
 import StorefrontIcon from '@mui/icons-material/Storefront'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
+import QrCode2Icon from '@mui/icons-material/QrCode2'
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
@@ -115,11 +116,11 @@ export function Navbar() {
                     color="secondary"
                     size="small"
                     component={Link}
-                    href="/owner/dashboard"
-                    startIcon={<StorefrontIcon />}
-                    sx={{ borderRadius: 2 }}
+                    href="/owner/qr"
+                    startIcon={<QrCode2Icon />}
+                    sx={{ borderRadius: 2, fontWeight: 700 }}
                   >
-                    Portal
+                    QR
                   </Button>
                 ) : (
                   <>
@@ -185,6 +186,26 @@ export function Navbar() {
                       sx={{ fontSize: '0.9rem' }}
                     >
                       Dashboard
+                    </MenuItem>
+                  )}
+                  {isOwner && (
+                    <MenuItem
+                      component={Link}
+                      href="/owner/qr"
+                      onClick={handleMenuClose}
+                      sx={{ fontSize: '0.9rem' }}
+                    >
+                      Table QR Codes
+                    </MenuItem>
+                  )}
+                  {isOwner && (
+                    <MenuItem
+                      component={Link}
+                      href="/owner/orders"
+                      onClick={handleMenuClose}
+                      sx={{ fontSize: '0.9rem' }}
+                    >
+                      Live Orders
                     </MenuItem>
                   )}
                   {isOwner && (
