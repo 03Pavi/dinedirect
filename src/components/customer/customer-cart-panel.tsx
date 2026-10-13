@@ -24,7 +24,7 @@ import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RestaurantIcon from '@mui/icons-material/Restaurant'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
-
+import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { updateQuantity, removeItem, clearCart } from '@/store/slices/cart-slice'
@@ -434,6 +434,8 @@ export function CustomerCartPanel({ onCloseMobile }: CustomerCartPanelProps) {
 
         {/* Bold Orange Checkout Button (from screenshot) */}
         <Button
+          component={Link}
+          href="/checkout"
           fullWidth
           variant="contained"
           onClick={handleCheckout}

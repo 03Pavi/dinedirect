@@ -22,11 +22,18 @@ const cartPersistConfig = {
   whitelist: ['restaurantId', 'restaurantName', 'items', 'subtotal', 'deliveryFee'],
 }
 
+const authPersistConfig = {
+  key: 'dinein_auth',
+  storage,
+  whitelist: ['user', 'token', 'initialized'],
+}
+
 const persistedCartReducer = persistReducer(cartPersistConfig, cartReducer)
+const persistedAuthReducer = persistReducer(authPersistConfig, authReducer)
 
 export const store = configureStore({
   reducer: {
-    auth: authReducer,
+    auth: persistedAuthReducer,
     cart: persistedCartReducer,
     order: orderReducer,
     restaurant: restaurantReducer,

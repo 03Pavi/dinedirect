@@ -6,11 +6,26 @@ export interface ApiResponse<T = any> {
 
 class ApiClient {
   private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+    let token: string | null = null
+    if (typeof window !== 'undefined') {
+      try {
+        const persistedAuth = localStorage.getItem('persist:dinein_auth')
+        if (persistedAuth) {
+          const parsed = JSON.parse(persistedAuth)
+          if (parsed.token) {
+            token = JSON.parse(parsed.token)
+          }
+        }
+      } catch {}
+    }
+
     const defaultHeaders: HeadersInit = {
       'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
     }
 
     const config: RequestInit = {
+      credentials: 'include',
       ...options,
       headers: {
         ...defaultHeaders,

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import {
   Box,
   Typography,
@@ -435,10 +436,14 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
 
           {/* Big Orange Checkout Button */}
           <Button
+            component={Link}
+            href="/checkout"
             fullWidth
             variant="contained"
             size="large"
-            onClick={handleCheckoutClick}
+            onClick={() => {
+              if (onClose) onClose()
+            }}
             startIcon={<ShoppingBagIcon />}
             sx={{
               bgcolor: '#ea580c',

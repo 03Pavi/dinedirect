@@ -86,8 +86,10 @@ export const authSlice = createSlice({
     })
     builder.addCase(fetchMeThunk.fulfilled, (state, action) => {
       state.loading = false
-      state.user = action.payload.user
       state.initialized = true
+      if (action.payload?.user) {
+        state.user = action.payload.user
+      }
     })
     builder.addCase(fetchMeThunk.rejected, (state) => {
       state.loading = false

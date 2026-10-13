@@ -5,76 +5,10 @@ import { Box, Typography, Avatar } from '@mui/material'
 import StorefrontIcon from '@mui/icons-material/Storefront'
 import { Restaurant } from '@/types/restaurant-types'
 
-export const DEFAULT_POPULAR_BRANDS = [
-  {
-    id: 'brand-sangeetha',
-    name: 'Sangeetha',
-    time: '42 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1546833999-b9f581a1996d?auto=format&fit=crop&w=300&q=80',
-    cuisine: ['South Indian', 'Pure Veg'],
-  },
-  {
-    id: 'brand-thalappakatti',
-    name: 'Thalappakatti',
-    time: '32 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=300&q=80',
-    cuisine: ['Biryani', 'Mughlai'],
-  },
-  {
-    id: 'brand-subway',
-    name: 'Subway',
-    time: '26 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1509722747041-616f39b57569?auto=format&fit=crop&w=300&q=80',
-    cuisine: ['Healthy', 'Subs', 'Salads'],
-  },
-  {
-    id: 'brand-chaikings',
-    name: 'Chai Kings',
-    time: '38 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1513558161293-cdaf765ed2fd?auto=format&fit=crop&w=300&q=80',
-    cuisine: ['Beverages', 'Snacks'],
-  },
-  {
-    id: 'brand-bbqnation',
-    name: 'BBQ Nation',
-    time: '53 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1555939594-58d7cb561ad1?auto=format&fit=crop&w=300&q=80',
-    cuisine: ['Barbecue', 'Buffet'],
-  },
-  {
-    id: 'brand-a2b',
-    name: 'A2B Chennai',
-    time: '22 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1589301760014-d929f3979dbc?auto=format&fit=crop&w=300&q=80',
-    cuisine: ['South Indian', 'Sweets'],
-  },
-  {
-    id: 'brand-kfc',
-    name: 'KFC',
-    time: '13 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=300&q=80',
-    cuisine: ['Fast Food', 'Burgers'],
-  },
-  {
-    id: 'brand-aasife',
-    name: 'Aasife Biryani',
-    time: '31 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1599488615731-7e5c2823ff28?auto=format&fit=crop&w=300&q=80',
-    cuisine: ['Biryani', 'Tandoori'],
-  },
-  {
-    id: 'brand-chennai',
-    name: 'Chennai Birya',
-    time: '44 mins',
-    imageUrl: 'https://images.unsplash.com/photo-1567620905732-2d1ec7ab7445?auto=format&fit=crop&w=300&q=80',
-    cuisine: ['Biryani', 'Chettinad'],
-  },
-]
-
 interface RestaurantAvatarRowProps {
   restaurants: Restaurant[]
   selectedRestaurantId?: string | null
-  onSelectRestaurant: (restaurant: Restaurant | any) => void
+  onSelectRestaurant: (restaurant: Restaurant) => void
 }
 
 export function RestaurantAvatarRow({
@@ -82,20 +16,10 @@ export function RestaurantAvatarRow({
   selectedRestaurantId,
   onSelectRestaurant,
 }: RestaurantAvatarRowProps) {
-  // Use real restaurants if available, merged with popular brands
-  const brandsToDisplay =
-    restaurants.length > 0
-      ? [
-          ...restaurants.map((r, i) => ({
-            id: r.id,
-            name: r.name,
-            time: '25-35 mins',
-            imageUrl: r.imageUrl || DEFAULT_POPULAR_BRANDS[i % DEFAULT_POPULAR_BRANDS.length].imageUrl,
-            rawRestaurant: r,
-          })),
-          ...DEFAULT_POPULAR_BRANDS.filter((d) => !restaurants.some((r) => r.name.toLowerCase() === d.name.toLowerCase())),
-        ]
-      : DEFAULT_POPULAR_BRANDS
+  // Only display actual registered restaurants from database
+  if (!restaurants || restaurants.length === 0) {
+    return null
+  }
 
   return (
     <Box sx={{ my: 3 }}>
@@ -120,19 +44,20 @@ export function RestaurantAvatarRow({
           '::-webkit-scrollbar-thumb': { bgcolor: '#e2e8f0', borderRadius: 4 },
         }}
       >
-        {brandsToDisplay.map((brand: any) => {
-          const isSelected = selectedRestaurantId === brand.id
+        {restaurants.map((restaurant) => {
+          const isSelected = selectedRestaurantId === restaurant.id
+          const fallbackInitial = restaurant.name ? restaurant.name.charAt(0).toUpperCase() : 'R'
 
           return (
             <Box
-              key={brand.id}
-              onClick={() => onSelectRestaurant(brand.rawRestaurant || brand)}
+              key={restaurant.id}
+              onClick={() => onSelectRestaurant(restaurant)}
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
                 cursor: 'pointer',
-                minWidth: 78,
+                minWidth: 80,
                 textAlign: 'center',
                 transition: 'all 0.2s ease',
                 '&:hover': {
@@ -146,8 +71,8 @@ export function RestaurantAvatarRow({
             >
               <Avatar
                 className="brand-avatar"
-                src={brand.imageUrl}
-                alt={brand.name}
+                src={restaurant.imageUrl || undefined}
+                alt={restaurant.name}
                 sx={{
                   width: 66,
                   height: 66,
@@ -157,9 +82,11 @@ export function RestaurantAvatarRow({
                   transition: 'all 0.2s ease',
                   bgcolor: '#fff7ed',
                   color: '#ea580c',
+                  fontWeight: 800,
+                  fontSize: '1.25rem',
                 }}
               >
-                <StorefrontIcon />
+                {restaurant.imageUrl ? <StorefrontIcon /> : fallbackInitial}
               </Avatar>
 
               <Typography
@@ -169,16 +96,16 @@ export function RestaurantAvatarRow({
                   fontWeight: 700,
                   fontSize: '0.82rem',
                   color: isSelected ? '#ea580c' : '#0f172a',
-                  maxWidth: 78,
+                  maxWidth: 80,
                   lineHeight: 1.2,
                   mb: 0.2,
                 }}
               >
-                {brand.name}
+                {restaurant.name}
               </Typography>
 
               <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.72rem', fontWeight: 600 }}>
-                {brand.time || '25 mins'}
+                {restaurant.city || '25-30 mins'}
               </Typography>
             </Box>
           )
