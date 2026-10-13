@@ -34,6 +34,7 @@ interface SearchDish {
 interface SearchAutocompleteProps {
   searchQuery: string
   onSearchChange: (query: string) => void
+  onSubmitSearch?: (query: string) => void
   open: boolean
   onOpenChange: (open: boolean) => void
   dishes: SearchDish[]
@@ -48,6 +49,7 @@ const MAX_RESTAURANTS = 3
 export function SearchAutocomplete({
   searchQuery,
   onSearchChange,
+  onSubmitSearch,
   open,
   onOpenChange,
   dishes,
@@ -98,18 +100,21 @@ export function SearchAutocomplete({
 
   const handleClear = () => {
     onSearchChange('')
+    onSubmitSearch?.('')
     inputRef.current?.focus()
   }
 
   const handleDishClick = (dish: SearchDish) => {
     onSearchChange(dish.name)
     onOpenChange(false)
+    onSubmitSearch?.(dish.name)
     onSelectDish?.(dish)
   }
 
   const handleRestaurantClick = (restaurant: Restaurant) => {
     onSearchChange(restaurant.name)
     onOpenChange(false)
+    onSubmitSearch?.(restaurant.name)
     onSelectRestaurant?.(restaurant)
   }
 
@@ -155,12 +160,24 @@ export function SearchAutocomplete({
         onFocus={() => onOpenChange(true)}
         onKeyDown={(e) => {
           if (e.key === 'Escape') onOpenChange(false)
-          if (e.key === 'Enter') onOpenChange(false)
+          if (e.key === 'Enter') {
+            onOpenChange(false)
+            onSubmitSearch?.(searchQuery)
+          }
         }}
         InputProps={{
           startAdornment: (
             <InputAdornment position="start">
-              <SearchIcon sx={{ color: searchQuery ? '#ea580c' : '#94a3b8' }} />
+              <IconButton
+                size="small"
+                onClick={() => {
+                  onOpenChange(false)
+                  onSubmitSearch?.(searchQuery)
+                }}
+                sx={{ p: 0.2, color: searchQuery ? '#ea580c' : '#94a3b8' }}
+              >
+                <SearchIcon />
+              </IconButton>
             </InputAdornment>
           ),
           endAdornment: (

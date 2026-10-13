@@ -348,7 +348,7 @@ export default function OwnerQRPage() {
           }}
         >
           {/* Left: Back Link & Title */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'start', gap: 2, flexDirection:"column" }}>
             <Button
               component={Link}
               href="/owner/dashboard"

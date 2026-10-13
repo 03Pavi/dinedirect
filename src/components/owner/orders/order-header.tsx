@@ -37,41 +37,44 @@ export function OrderHeader({
   onCreateDemoOrder,
 }: OrderHeaderProps) {
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        flexDirection: { xs: 'column', md: 'row' },
-        justifyContent: 'space-between',
-        alignItems: { xs: 'flex-start', md: 'center' },
-        gap: 2,
-        mb: 3,
-        bgcolor: '#ffffff',
-        p: { xs: 2, sm: 2.5 },
-        borderRadius: '12px',
-        border: '1px solid #e2e8f0',
-        boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
-      }}
-    >
-      {/* Left: Back Button & Title */}
-      <Box sx={{ display: 'flex', alignItems: 'start',flexDirection:"column", gap: 2 }}>
+    <Box sx={{ mb: 3 }}>
+      {/* Top Back Navigation Link */}
+      <Box sx={{ mb: 1.5 }}>
         <Button
           component={Link}
           href="/owner/dashboard"
-          variant="outlined"
-          size="small"
-          startIcon={<ArrowBackIcon />}
+          startIcon={<ArrowBackIcon sx={{ fontSize: 18 }} />}
           sx={{
-            borderRadius: '8px',
             color: '#64748b',
-            borderColor: '#e2e8f0',
             textTransform: 'none',
-            fontWeight: 600,
+            fontWeight: 700,
             fontSize: '0.85rem',
-            '&:hover': { bgcolor: '#f1f5f9', borderColor: '#cbd5e1' },
+            px: 1,
+            py: 0.4,
+            borderRadius: '6px',
+            '&:hover': { color: '#0f172a', bgcolor: 'rgba(0,0,0,0.04)' },
           }}
         >
-          Dashboard
+          Back to Dashboard
         </Button>
+      </Box>
+
+      {/* Main Header Card */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          justifyContent: 'space-between',
+          alignItems: { xs: 'flex-start', md: 'center' },
+          gap: 2,
+          bgcolor: '#ffffff',
+          p: { xs: 2, sm: 2.5 },
+          borderRadius: '12px',
+          border: '1px solid #e2e8f0',
+          boxShadow: '0 1px 3px rgba(0,0,0,0.03)',
+        }}
+      >
+        {/* Left: Title & Status */}
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
             <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
@@ -94,7 +97,6 @@ export function OrderHeader({
             Track and progress orders: <strong>Preparing</strong>, <strong>Ready</strong>, and <strong>Picked Up</strong>
           </Typography>
         </Box>
-      </Box>
 
       {/* Right: Controls & Actions */}
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
@@ -179,6 +181,7 @@ export function OrderHeader({
           + Demo Order
         </Button>
       </Box>
+    </Box>
     </Box>
   )
 }
