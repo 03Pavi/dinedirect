@@ -226,8 +226,7 @@ export function CustomerSidebar({
         ) : (
           <Button
             fullWidth
-            component={Link}
-            href="/login"
+            onClick={() => router.push('/login')}
             variant="contained"
             startIcon={<PersonOutlineIcon />}
             sx={{

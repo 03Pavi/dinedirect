@@ -95,7 +95,7 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
       router.push('/login')
       return
     }
-    setCheckoutDialogOpen(true)
+    router.push('/checkout')
   }
 
   const handleConfirmOrder = async () => {

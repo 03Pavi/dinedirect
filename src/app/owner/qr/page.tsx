@@ -51,6 +51,8 @@ import { selectMyRestaurant } from '@/store/selectors/restaurant-selectors'
 import { fetchMyRestaurantThunk } from '@/store/thunks/fetch-my-restaurant-thunk'
 import QRCode from 'qrcode'
 
+type QRType = 'TABLE' | 'RESTAURANT'
+
 interface QRCodeItem {
   id: string
   restaurantId: string
@@ -62,6 +64,7 @@ interface QRCodeItem {
   scansCount: number
   createdAt: string
   lastScannedAt: string | null
+  qrType?: QRType
 }
 
 const COLOR_OPTIONS = [
@@ -87,6 +90,7 @@ export default function OwnerQRPage() {
   const [searchQuery, setSearchQuery] = useState('')
 
   // Creator form state
+  const [qrType, setQrType] = useState<QRType>('TABLE')
   const [tableNumber, setTableNumber] = useState('Table 5')
   const [tableLabel, setTableLabel] = useState('Main Dining Hall')
   const [selectedColor, setSelectedColor] = useState('#ea580c')
@@ -151,8 +155,11 @@ export default function OwnerQRPage() {
   // Live QR Preview Generator
   const previewTargetUrl = useMemo(() => {
     if (!restaurant) return ''
+    if (qrType === 'RESTAURANT') {
+      return `${origin}/menu?restaurantId=${encodeURIComponent(restaurant.id)}`
+    }
     return `${origin}/menu?restaurantId=${encodeURIComponent(restaurant.id)}&table=${encodeURIComponent(tableNumber || 'Table')}`
-  }, [origin, restaurant, tableNumber])
+  }, [origin, restaurant, tableNumber, qrType])
 
   useEffect(() => {
     if (!previewTargetUrl) return
@@ -188,10 +195,16 @@ export default function OwnerQRPage() {
 
   // Create new QR Code handler
   const handleCreateQR = async () => {
-    if (!tableNumber.trim()) {
+    if (qrType === 'TABLE' && !tableNumber.trim()) {
       setSnackbar({ open: true, message: 'Please enter a table number or label', severity: 'error' })
       return
     }
+
+    const isRestaurantQR = qrType === 'RESTAURANT'
+    const effectiveTableNumber = isRestaurantQR ? 'Restaurant Menu' : tableNumber.trim()
+    const effectiveLabel = isRestaurantQR
+      ? `${restaurant?.name || 'Restaurant'} — Full Menu QR`
+      : (tableLabel.trim() || `${tableNumber.trim()} Dining QR`)
 
     try {
       setIsSubmitting(true)
@@ -199,21 +212,30 @@ export default function OwnerQRPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tableNumber: tableNumber.trim(),
-          label: tableLabel.trim() || `${tableNumber.trim()} Dining QR`,
+          tableNumber: effectiveTableNumber,
+          label: effectiveLabel,
           color: selectedColor,
+          qrType,
         }),
       })
       const data = await res.json()
 
       if (data.success && data.qr) {
         setQrs([data.qr, ...qrs])
-        setSnackbar({ open: true, message: `Created QR Code for ${tableNumber.trim()}!`, severity: 'success' })
-        // Increment table number suggestion
-        const match = tableNumber.match(/Table\s*(\d+)/i)
-        if (match) {
-          const nextNum = parseInt(match[1], 10) + 1
-          setTableNumber(`Table ${nextNum}`)
+        setSnackbar({
+          open: true,
+          message: isRestaurantQR
+            ? `Created Restaurant Menu QR for ${restaurant?.name}!`
+            : `Created QR Code for ${effectiveTableNumber}!`,
+          severity: 'success',
+        })
+        // Increment table number suggestion for table QRs
+        if (!isRestaurantQR) {
+          const match = tableNumber.match(/Table\s*(\d+)/i)
+          if (match) {
+            const nextNum = parseInt(match[1], 10) + 1
+            setTableNumber(`Table ${nextNum}`)
+          }
         }
       } else {
         setSnackbar({ open: true, message: data.error || 'Failed to create QR code', severity: 'error' })
@@ -578,49 +600,129 @@ export default function OwnerQRPage() {
                 </Box>
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.05rem' }}>
-                    Generate Table QR
+                    Generate QR Code
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#64748b' }}>
-                    Create custom branded QR code for table or counter
+                    Create QR for a table or your full restaurant menu
                   </Typography>
                 </Box>
               </Box>
 
               <Divider sx={{ mb: 2.5, borderColor: '#f1f5f9' }} />
 
+              {/* QR Type Toggle */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  bgcolor: '#f1f5f9',
+                  p: 0.5,
+                  borderRadius: '12px',
+                  mb: 2.5,
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                <Button
+                  fullWidth
+                  size="small"
+                  onClick={() => setQrType('TABLE')}
+                  startIcon={<QrCode2Icon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    borderRadius: '10px',
+                    py: 1,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    fontSize: '0.85rem',
+                    bgcolor: qrType === 'TABLE' ? '#ea580c' : 'transparent',
+                    color: qrType === 'TABLE' ? '#ffffff' : '#64748b',
+                    boxShadow: qrType === 'TABLE' ? '0 2px 8px rgba(234,88,12,0.3)' : 'none',
+                    '&:hover': {
+                      bgcolor: qrType === 'TABLE' ? '#c2410c' : '#e2e8f0',
+                    },
+                  }}
+                >
+                  Table QR
+                </Button>
+                <Button
+                  fullWidth
+                  size="small"
+                  onClick={() => setQrType('RESTAURANT')}
+                  startIcon={<StorefrontIcon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    borderRadius: '10px',
+                    py: 1,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    fontSize: '0.85rem',
+                    bgcolor: qrType === 'RESTAURANT' ? '#ea580c' : 'transparent',
+                    color: qrType === 'RESTAURANT' ? '#ffffff' : '#64748b',
+                    boxShadow: qrType === 'RESTAURANT' ? '0 2px 8px rgba(234,88,12,0.3)' : 'none',
+                    '&:hover': {
+                      bgcolor: qrType === 'RESTAURANT' ? '#c2410c' : '#e2e8f0',
+                    },
+                  }}
+                >
+                  Restaurant Menu
+                </Button>
+              </Box>
+
               {/* Form Controls */}
               <Stack spacing={2} sx={{ mb: 3 }}>
-                <Box>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.6, display: 'block' }}>
-                    Table Number / Label:
-                  </Typography>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                    placeholder="e.g. Table 1, Table 8, Patio 3, Counter"
-                    sx={{
-                      '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                    }}
-                  />
-                </Box>
+                {qrType === 'TABLE' && (
+                  <>
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.6, display: 'block' }}>
+                        Table Number / Label:
+                      </Typography>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        value={tableNumber}
+                        onChange={(e) => setTableNumber(e.target.value)}
+                        placeholder="e.g. Table 1, Table 8, Patio 3, Counter"
+                        sx={{
+                          '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                        }}
+                      />
+                    </Box>
 
-                <Box>
-                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.6, display: 'block' }}>
-                    Dining Area / Zone:
-                  </Typography>
-                  <TextField
-                    size="small"
-                    fullWidth
-                    value={tableLabel}
-                    onChange={(e) => setTableLabel(e.target.value)}
-                    placeholder="e.g. Indoor AC Dining, Rooftop, Garden Lawn"
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.6, display: 'block' }}>
+                        Dining Area / Zone:
+                      </Typography>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        value={tableLabel}
+                        onChange={(e) => setTableLabel(e.target.value)}
+                        placeholder="e.g. Indoor AC Dining, Rooftop, Garden Lawn"
+                        sx={{
+                          '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                        }}
+                      />
+                    </Box>
+                  </>
+                )}
+
+                {qrType === 'RESTAURANT' && (
+                  <Box
                     sx={{
-                      '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                      bgcolor: '#eff6ff',
+                      border: '1px solid #bfdbfe',
+                      borderRadius: '10px',
+                      p: 2,
                     }}
-                  />
-                </Box>
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                      <StorefrontIcon sx={{ fontSize: 18, color: '#2563eb' }} />
+                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#1e40af' }}>
+                        {restaurant?.name || 'Your Restaurant'}
+                      </Typography>
+                    </Box>
+                    <Typography variant="caption" sx={{ color: '#3b82f6', fontWeight: 600 }}>
+                      This QR opens your full menu listing. Share it on social media, business cards, flyers, or your storefront. Anyone who scans it can browse your menu and place orders directly.
+                    </Typography>
+                  </Box>
+                )}
 
                 {/* Color Palette Selector */}
                 <Box>
@@ -665,7 +767,7 @@ export default function OwnerQRPage() {
                 }}
               >
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                  Live Stand Preview
+                  {qrType === 'RESTAURANT' ? 'Restaurant Menu QR Preview' : 'Live Stand Preview'}
                 </Typography>
 
                 {/* QR Visual */}
@@ -698,10 +800,12 @@ export default function OwnerQRPage() {
                 </Box>
 
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                  {tableNumber || 'Table'}
+                  {qrType === 'RESTAURANT' ? (restaurant?.name || 'Restaurant') : (tableNumber || 'Table')}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748b' }}>
-                  Scan to View Menu & Place Order
+                  {qrType === 'RESTAURANT'
+                    ? 'Scan to Browse Menu & Order Online'
+                    : 'Scan to View Menu & Place Order'}
                 </Typography>
               </Box>
 
@@ -710,7 +814,7 @@ export default function OwnerQRPage() {
                 <Button
                   variant="contained"
                   fullWidth
-                  disabled={isSubmitting || !tableNumber.trim()}
+                  disabled={isSubmitting || (qrType === 'TABLE' && !tableNumber.trim())}
                   onClick={handleCreateQR}
                   startIcon={<AddIcon />}
                   sx={{
@@ -722,7 +826,11 @@ export default function OwnerQRPage() {
                     '&:hover': { bgcolor: '#c2410c' },
                   }}
                 >
-                  {isSubmitting ? 'Generating...' : `Save & Add ${tableNumber || 'Table'} QR`}
+                  {isSubmitting
+                    ? 'Generating...'
+                    : qrType === 'RESTAURANT'
+                      ? `Save Restaurant Menu QR`
+                      : `Save & Add ${tableNumber || 'Table'} QR`}
                 </Button>
 
                 <Box sx={{ display: 'flex', gap: 1 }}>
