@@ -12,6 +12,7 @@ import {
   Snackbar,
   Alert,
   CircularProgress,
+  Avatar,
 } from '@mui/material'
 import EmailIcon from '@mui/icons-material/Email'
 import LockIcon from '@mui/icons-material/Lock'
@@ -21,6 +22,7 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { loginThunk } from '@/store/thunks/login-thunk'
+import { logoutThunk } from '@/store/thunks/logout-thunk'
 import {
   selectAuthLoading,
   selectCurrentUser,
@@ -53,16 +55,63 @@ export function SignInWidget() {
     severity: 'info',
   })
 
-  // If already logged in, directly send to dashboard or explore menu
-  React.useEffect(() => {
-    if (isAuthenticated && user) {
-      if (user.role === 'RESTAURANT_OWNER') {
-        router.replace('/owner/dashboard')
-      } else {
-        router.replace('/menu')
-      }
-    }
-  }, [isAuthenticated, user, router])
+  if (isAuthenticated && user) {
+    return (
+      <SharpPaper sx={{ p: { xs: 3, sm: 5 }, width: '100%', textAlign: 'center' }}>
+        <Avatar
+          sx={{
+            width: 56,
+            height: 56,
+            bgcolor: '#ea580c',
+            mx: 'auto',
+            mb: 2,
+            fontSize: '1.4rem',
+            fontWeight: 800,
+          }}
+        >
+          {user.name.charAt(0).toUpperCase()}
+        </Avatar>
+        <Typography variant="h6" sx={{ fontWeight: 800, color: 'text.primary', mb: 0.5 }}>
+          You are already signed in
+        </Typography>
+        <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+          Signed in as <strong>{user.name}</strong> ({user.email})
+        </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <SharpButton
+            fullWidth
+            variant="contained"
+            onClick={() => {
+              if (user.role === 'RESTAURANT_OWNER') {
+                router.push('/owner/dashboard')
+              } else {
+                router.push('/menu')
+              }
+            }}
+          >
+            Continue to {user.role === 'RESTAURANT_OWNER' ? 'Dashboard' : 'Menu'}
+          </SharpButton>
+          <Button
+            fullWidth
+            variant="outlined"
+            onClick={async () => {
+              await dispatch(logoutThunk())
+            }}
+            sx={{
+              borderRadius: '8px',
+              fontWeight: 700,
+              textTransform: 'none',
+              py: 1.2,
+              borderColor: '#e2e8f0',
+              color: 'text.primary',
+            }}
+          >
+            Sign in with a different account
+          </Button>
+        </Box>
+      </SharpPaper>
+    )
+  }
 
   const validate = () => {
     const newErrors: Record<string, string> = {}

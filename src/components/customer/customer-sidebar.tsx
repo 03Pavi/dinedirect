@@ -56,6 +56,21 @@ export function CustomerSidebar({
   ]
 
   const handleNavClick = (label: string) => {
+    if (label === 'Profile' && !isAuthenticated) {
+      if (onItemClick) onItemClick()
+      router.push('/login')
+      return
+    }
+    if (label === 'Orders' && !isAuthenticated) {
+      if (onItemClick) onItemClick()
+      router.push('/login')
+      return
+    }
+    if (label === 'Home') {
+      if (onItemClick) onItemClick()
+      router.push('/menu')
+      return
+    }
     if (setActiveNav) {
       setActiveNav(label)
     }
@@ -225,8 +240,12 @@ export function CustomerSidebar({
           </Box>
         ) : (
           <Button
+            component={Link}
+            href="/login"
             fullWidth
-            onClick={() => router.push('/login')}
+            onClick={() => {
+              if (onItemClick) onItemClick()
+            }}
             variant="contained"
             startIcon={<PersonOutlineIcon />}
             sx={{

@@ -91,10 +91,7 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
   }
 
   const handleCheckoutClick = () => {
-    if (!isAuthenticated) {
-      router.push('/login')
-      return
-    }
+    if (onClose) onClose()
     router.push('/checkout')
   }
 

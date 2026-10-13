@@ -78,24 +78,55 @@ export async function POST(req: NextRequest) {
     const orderId = crypto.randomUUID()
     const now = new Date().toISOString()
 
-    // Create Order
-    const { data: newOrder, error: orderError } = await supabase
+    const finalSubtotal = body.subtotal !== undefined ? Number(body.subtotal) : subtotal
+    const discount = body.discount !== undefined ? Number(body.discount) : 0
+    const calculatedTotal = Math.max(0, finalSubtotal - discount + deliveryFee)
+    const orderAddress = address || (body.tableNumber ? `Table: ${body.tableNumber} (Dine-In)` : 'Dine-In Order')
+
+    const baseOrderPayload: any = {
+      id: orderId,
+      customerId: user.id,
+      restaurantId,
+      status: 'PLACED',
+      totalAmount: calculatedTotal,
+      deliveryFee,
+      address: orderAddress,
+      note: note || null,
+      paymentMode: paymentMode || 'CASH',
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    const extendedOrderPayload = {
+      ...baseOrderPayload,
+      ...(body.orderType ? { orderType: body.orderType } : {}),
+      ...(body.tableNumber ? { tableNumber: body.tableNumber } : {}),
+      subtotal: finalSubtotal,
+      discount,
+      ...(body.couponCode ? { couponCode: body.couponCode } : {}),
+    }
+
+    let newOrder: any = null
+    let orderError: any = null
+
+    const resExtended = await supabase
       .from('Order')
-      .insert({
-        id: orderId,
-        customerId: user.id,
-        restaurantId,
-        status: 'PLACED',
-        totalAmount,
-        deliveryFee,
-        address: address || 'Table Order / Dine In',
-        note: note || null,
-        paymentMode: paymentMode || 'CASH',
-        createdAt: now,
-        updatedAt: now,
-      })
+      .insert(extendedOrderPayload)
       .select()
       .single()
+
+    if (resExtended.error) {
+      // Fallback to base schema in case extended columns don't exist yet
+      const resBase = await supabase
+        .from('Order')
+        .insert(baseOrderPayload)
+        .select()
+        .single()
+      newOrder = resBase.data
+      orderError = resBase.error
+    } else {
+      newOrder = resExtended.data
+    }
 
     if (orderError || !newOrder) {
       return NextResponse.json({ error: orderError?.message || 'Failed to place order' }, { status: 500 })

@@ -21,16 +21,9 @@ export async function middleware(request: NextRequest) {
   const isOrdersRoute = pathname.startsWith('/orders')
   const isAuthRoute = pathname === '/login' || pathname === '/register'
 
-  // If already authenticated and accessing root / or login / register
+  // If already authenticated and accessing root /
   if (pathname === '/' && user && user.role === 'RESTAURANT_OWNER') {
     return NextResponse.redirect(new URL('/owner/dashboard', request.url))
-  }
-
-  if (isAuthRoute && user) {
-    if (user.role === 'RESTAURANT_OWNER') {
-      return NextResponse.redirect(new URL('/owner/dashboard', request.url))
-    }
-    return NextResponse.redirect(new URL('/menu', request.url))
   }
 
   // If accessing Owner UI routes (/owner/*)

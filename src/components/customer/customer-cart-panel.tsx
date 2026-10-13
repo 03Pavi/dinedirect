@@ -25,6 +25,7 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import RestaurantIcon from '@mui/icons-material/Restaurant'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 
+import { useRouter } from 'next/navigation'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { updateQuantity, removeItem, clearCart } from '@/store/slices/cart-slice'
 import { CartItem } from '@/types/order-types'
@@ -34,6 +35,7 @@ interface CustomerCartPanelProps {
 }
 
 export function CustomerCartPanel({ onCloseMobile }: CustomerCartPanelProps) {
+  const router = useRouter()
   const dispatch = useAppDispatch()
   const cart = useAppSelector((state) => state.cart)
 
@@ -80,7 +82,8 @@ export function CustomerCartPanel({ onCloseMobile }: CustomerCartPanelProps) {
 
   const handleCheckout = () => {
     if (cart.items.length === 0) return
-    setCheckoutSuccess(true)
+    if (onCloseMobile) onCloseMobile()
+    router.push('/checkout')
   }
 
   const handleFinishOrder = () => {
