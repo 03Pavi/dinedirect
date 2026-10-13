@@ -211,6 +211,16 @@ export function Navbar() {
                   {isOwner && (
                     <MenuItem
                       component={Link}
+                      href="/owner/coupons"
+                      onClick={handleMenuClose}
+                      sx={{ fontSize: '0.9rem' }}
+                    >
+                      Coupons & Offers
+                    </MenuItem>
+                  )}
+                  {isOwner && (
+                    <MenuItem
+                      component={Link}
                       href="/owner/menu"
                       onClick={handleMenuClose}
                       sx={{ fontSize: '0.9rem' }}

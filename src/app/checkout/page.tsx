@@ -83,7 +83,21 @@ export default function CheckoutPage() {
   const discount = appliedCoupon ? appliedCoupon.discount : 0
   const finalTotal = Math.max(0, subtotal + tax - discount)
 
-  const handleApplyCoupon = (codeToApply?: string) => {
+  const [restaurantCoupons, setRestaurantCoupons] = useState<any[]>([])
+
+  // Load restaurant's actual active coupons
+  useEffect(() => {
+    if (cart.restaurantId) {
+      apiClient
+        .get<{ coupons: any[] }>(`/api/coupons/validate?restaurantId=${encodeURIComponent(cart.restaurantId)}`)
+        .then((res) => {
+          if (res?.coupons) setRestaurantCoupons(res.coupons)
+        })
+        .catch(() => {})
+    }
+  }, [cart.restaurantId])
+
+  const handleApplyCoupon = async (codeToApply?: string) => {
     const code = (codeToApply || couponCode).trim().toUpperCase()
     setCouponError('')
 
@@ -92,16 +106,21 @@ export default function CheckoutPage() {
       return
     }
 
-    if (code === 'WELCOME50') {
-      const disc = Math.min(50, subtotal)
-      setAppliedCoupon({ code, discount: disc })
-      setCouponCode('WELCOME50')
-    } else if (code === 'FEAST20') {
-      const disc = Math.round(subtotal * 0.2)
-      setAppliedCoupon({ code, discount: disc })
-      setCouponCode('FEAST20')
-    } else {
-      setCouponError('Invalid coupon. Try WELCOME50 or FEAST20')
+    try {
+      const res = await apiClient.post<{ valid: boolean; discount: number; message: string }>('/api/coupons/validate', {
+        restaurantId: cart.restaurantId,
+        code,
+        subtotal,
+      })
+
+      if (res?.valid) {
+        setAppliedCoupon({ code, discount: res.discount })
+        setCouponCode(code)
+      } else {
+        setCouponError(res?.message || 'Invalid coupon code')
+      }
+    } catch (err: any) {
+      setCouponError(err?.message || 'Invalid or expired coupon code')
     }
   }
 
@@ -828,20 +847,35 @@ export default function CheckoutPage() {
 
                   {/* Quick coupon suggestions */}
                   <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', pt: 0.5 }}>
-                    <Chip
-                      label="WELCOME50 (Flat Rs 50 OFF)"
-                      clickable
-                      size="small"
-                      onClick={() => handleApplyCoupon('WELCOME50')}
-                      sx={{ bgcolor: '#fff7ed', color: '#ea580c', fontWeight: 700, border: '1px dashed #ea580c' }}
-                    />
-                    <Chip
-                      label="FEAST20 (20% OFF)"
-                      clickable
-                      size="small"
-                      onClick={() => handleApplyCoupon('FEAST20')}
-                      sx={{ bgcolor: '#fff7ed', color: '#ea580c', fontWeight: 700, border: '1px dashed #ea580c' }}
-                    />
+                    {restaurantCoupons.length > 0 ? (
+                      restaurantCoupons.slice(0, 4).map((cpn: any) => (
+                        <Chip
+                          key={cpn.id}
+                          label={`${cpn.code} (${cpn.discountType === 'PERCENTAGE' ? `${cpn.discountValue}% OFF` : `₹${cpn.discountValue} OFF`})`}
+                          clickable
+                          size="small"
+                          onClick={() => handleApplyCoupon(cpn.code)}
+                          sx={{ bgcolor: '#fff7ed', color: '#ea580c', fontWeight: 700, border: '1px dashed #ea580c' }}
+                        />
+                      ))
+                    ) : (
+                      <>
+                        <Chip
+                          label="WELCOME50 (Flat Rs 50 OFF)"
+                          clickable
+                          size="small"
+                          onClick={() => handleApplyCoupon('WELCOME50')}
+                          sx={{ bgcolor: '#fff7ed', color: '#ea580c', fontWeight: 700, border: '1px dashed #ea580c' }}
+                        />
+                        <Chip
+                          label="FEAST20 (20% OFF)"
+                          clickable
+                          size="small"
+                          onClick={() => handleApplyCoupon('FEAST20')}
+                          sx={{ bgcolor: '#fff7ed', color: '#ea580c', fontWeight: 700, border: '1px dashed #ea580c' }}
+                        />
+                      </>
+                    )}
                   </Box>
                 </Stack>
               )}

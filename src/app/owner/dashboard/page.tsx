@@ -21,9 +21,11 @@ import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu'
 import ReceiptLongIcon from '@mui/icons-material/ReceiptLong'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import LocationOnIcon from '@mui/icons-material/LocationOn'
-import PhoneIcon from '@mui/icons-material/Phone'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import QrCode2Icon from '@mui/icons-material/QrCode2'
+import LocalOfferIcon from '@mui/icons-material/LocalOffer'
+import PhoneIcon from '@mui/icons-material/Phone'
+
 
 import Navbar from '@/components/common/navbar'
 import { RestaurantInput } from '@/schemas/restaurant-schema'
@@ -453,8 +455,10 @@ export default function OwnerDashboardPage() {
                 </Box>
               </Card>
 
-              {/* Card 4: Delivery & Ordering Rules */}
+              {/* Card 4: Coupons & Special Offers */}
               <Card
+                component={Link}
+                href="/owner/coupons"
                 elevation={0}
                 sx={{
                   p: 3,
@@ -463,11 +467,17 @@ export default function OwnerDashboardPage() {
                   bgcolor: '#ffffff',
                   display: 'flex',
                   flexDirection: 'column',
+                  textDecoration: 'none',
                   height: '100%',
                   transition: 'all 0.2s ease-in-out',
                   '&:hover': {
-                    borderColor: '#cbd5e1',
-                    boxShadow: '0 8px 16px -4px rgba(0, 0, 0, 0.05)',
+                    borderColor: '#ea580c',
+                    transform: 'translateY(-3px)',
+                    boxShadow: '0 12px 24px -8px rgba(234, 88, 12, 0.15)',
+                    '& .action-arrow-cpn': {
+                      transform: 'translateX(4px)',
+                      color: '#ea580c',
+                    },
                   },
                 }}
               >
@@ -477,33 +487,27 @@ export default function OwnerDashboardPage() {
                       width: 44,
                       height: 44,
                       borderRadius: '10px',
-                      bgcolor: '#f1f5f9',
-                      color: '#334155',
+                      bgcolor: '#fff7ed',
+                      color: '#ea580c',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      border: '1px solid #e2e8f0',
+                      border: '1px solid #ffedd5',
                     }}
                   >
-                    <StorefrontIcon fontSize="small" />
+                    <LocalOfferIcon fontSize="small" />
                   </Box>
-                  <Chip label="Configured" size="small" sx={{ fontWeight: 700, fontSize: '0.72rem', height: 22, bgcolor: '#f1f5f9', color: '#475569' }} />
+                  <ArrowForwardIcon className="action-arrow-cpn" sx={{ color: '#cbd5e1', fontSize: 20, transition: 'all 0.2s ease' }} />
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1, fontSize: '1.05rem' }}>
-                  Delivery & Ordering Rules
+                  Coupons & Offers
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem', lineHeight: 1.6, flexGrow: 1, mb: 2.5 }}>
-                  Current operational rules applied to table orders and checkout totals.
+                  Create promotional discount codes, percentage deals, minimum order caps, and flash sales.
                 </Typography>
-                <Box sx={{ display: 'flex', gap: 1.5, mt: 'auto' }}>
-                  <Box sx={{ flex: 1, p: 1.2, bgcolor: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9', textAlign: 'center' }}>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block' }}>Fee</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a' }}>₹{restaurant.deliveryFee}</Typography>
-                  </Box>
-                  <Box sx={{ flex: 1, p: 1.2, bgcolor: '#f8fafc', borderRadius: '8px', border: '1px solid #f1f5f9', textAlign: 'center' }}>
-                    <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block' }}>Min Order</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 800, color: '#0f172a' }}>₹{restaurant.minOrder}</Typography>
-                  </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: '#ea580c', fontWeight: 700, fontSize: '0.85rem', mt: 'auto' }}>
+                  <span>Offers Studio</span>
+                  <ArrowForwardIcon sx={{ fontSize: 16 }} />
                 </Box>
               </Card>
             </Box>

@@ -69,19 +69,29 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
   const discountAmount = appliedCoupon ? appliedCoupon.discount : 0
   const finalTotal = Math.max(0, subtotal + deliveryFee - discountAmount)
 
-  const handleApplyCoupon = () => {
+  const handleApplyCoupon = async (customCode?: string) => {
     setCouponError('')
-    const code = couponCode.trim().toUpperCase()
-    if (!code) return
+    const code = (customCode || couponCode).trim().toUpperCase()
+    if (!code) {
+      setCouponError('Please enter a coupon code')
+      return
+    }
 
-    if (code === 'WELCOME50') {
-      const discount = Math.min(100, Math.round(subtotal * 0.5))
-      setAppliedCoupon({ code, discount })
-    } else if (code === 'FEAST20') {
-      const discount = Math.round(subtotal * 0.2)
-      setAppliedCoupon({ code, discount })
-    } else {
-      setCouponError('Invalid coupon code. Try WELCOME50 or FEAST20')
+    try {
+      const res = await apiClient.post<{ valid: boolean; discount: number; message: string }>('/api/coupons/validate', {
+        restaurantId: cart.restaurantId,
+        code,
+        subtotal,
+      })
+
+      if (res?.valid) {
+        setAppliedCoupon({ code, discount: res.discount })
+        setCouponCode(code)
+      } else {
+        setCouponError(res?.message || 'Invalid coupon code')
+      }
+    } catch (err: any) {
+      setCouponError(err?.message || 'Invalid or inactive coupon code')
     }
   }
 

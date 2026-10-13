@@ -661,7 +661,7 @@ export default function OwnerQRPage() {
                     },
                   }}
                 >
-                  Restaurant Menu
+                  Menu
                 </Button>
               </Box>
 
@@ -829,7 +829,7 @@ export default function OwnerQRPage() {
                   {isSubmitting
                     ? 'Generating...'
                     : qrType === 'RESTAURANT'
-                      ? `Save Restaurant Menu QR`
+                      ? `Save Menu QR`
                       : `Save & Add ${tableNumber || 'Table'} QR`}
                 </Button>
 
