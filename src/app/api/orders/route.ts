@@ -76,6 +76,7 @@ export async function POST(req: NextRequest) {
     const totalAmount = subtotal + deliveryFee
 
     const orderId = crypto.randomUUID()
+    const now = new Date().toISOString()
 
     // Create Order
     const { data: newOrder, error: orderError } = await supabase
@@ -90,6 +91,8 @@ export async function POST(req: NextRequest) {
         address: address || 'Table Order / Dine In',
         note: note || null,
         paymentMode: paymentMode || 'CASH',
+        createdAt: now,
+        updatedAt: now,
       })
       .select()
       .single()
@@ -106,6 +109,8 @@ export async function POST(req: NextRequest) {
       name: it.name,
       price: Number(it.price),
       quantity: Number(it.quantity),
+      createdAt: now,
+      updatedAt: now,
     }))
 
     const { error: itemsError } = await supabase

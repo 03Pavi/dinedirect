@@ -70,17 +70,22 @@ model MenuItem {
 }
 
 model Order {
-  id          String      @id @default(uuid())
-  customerId  String
+  id           String      @id @default(uuid())
+  customerId   String
   restaurantId String
-  status      String      @default("PLACED") // PLACED | ACCEPTED | PREPARING | READY | OUT_FOR_DELIVERY | DELIVERED | REJECTED | CANCELLED
-  totalAmount Float
-  deliveryFee Float       @default(0.0)
-  address     String
-  note        String?
-  paymentMode String      @default("CASH") // CASH | UPI | CARD
-  createdAt   DateTime    @default(now())
-  updatedAt   DateTime    @updatedAt
+  status       String      @default("PLACED") // PLACED | ACCEPTED | PREPARING | READY | OUT_FOR_DELIVERY | DELIVERED | REJECTED | CANCELLED
+  orderType    String      @default("DINE_IN") // DINE_IN | TAKEAWAY | DELIVERY
+  tableNumber  String?
+  subtotal     Float       @default(0.0)
+  discount     Float       @default(0.0)
+  totalAmount  Float
+  deliveryFee  Float       @default(0.0)
+  address      String
+  note         String?
+  paymentMode  String      @default("CASH") // CASH | UPI | CARD
+  couponCode   String?
+  createdAt    DateTime    @default(now())
+  updatedAt    DateTime    @updatedAt
 
   customer    User        @relation(fields: [customerId], references: [id], onDelete: Cascade)
   restaurant  Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
