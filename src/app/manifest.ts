@@ -1,0 +1,26 @@
+import { MetadataRoute } from 'next'
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: 'DineDirect - Restaurant Ordering & Dining',
+    short_name: 'DineDirect',
+    description:
+      'Direct, contactless dine-in ordering, digital menus, and real-time kitchen tracking for restaurants.',
+    start_url: '/',
+    display: 'standalone',
+    background_color: '#F8F9FA',
+    theme_color: '#E85D04',
+    icons: [
+      {
+        src: '/logo.svg',
+        sizes: '192x192',
+        type: 'image/svg+xml',
+      },
+      {
+        src: '/logo.svg',
+        sizes: '512x512',
+        type: 'image/svg+xml',
+      },
+    ],
+  }
+}

@@ -1,9 +1,9 @@
-"use client";
+'use client'
 
-import { ReactNode } from "react";
-import { ThemeProvider } from "@mui/material/styles";
-import CssBaseline from "@mui/material/CssBaseline";
-import theme from "@/shared/config/theme.config";
+import { ReactNode } from 'react'
+import { ThemeProvider } from '@mui/material/styles'
+import CssBaseline from '@mui/material/CssBaseline'
+import { theme } from '@/theme/theme'
 
 export default function AppThemeProvider({ children }: { children: ReactNode }) {
   return (
@@ -11,5 +11,5 @@ export default function AppThemeProvider({ children }: { children: ReactNode }) 
       <CssBaseline />
       {children}
     </ThemeProvider>
-  );
+  )
 }

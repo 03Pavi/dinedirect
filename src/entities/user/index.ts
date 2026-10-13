@@ -1,1 +1,0 @@
-export { default as userReducer, setUser, logout } from "./model/user-slice";

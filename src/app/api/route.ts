@@ -1,6 +1,5 @@
+import { NextResponse } from 'next/server'
 
-import { NextResponse } from "next/server";
-
-export const GET = () => {
-  return NextResponse.json({ message: "Server is running" });
-};
+export async function GET() {
+  return NextResponse.json({ status: 'ok', message: 'DineIn API is active' })
+}

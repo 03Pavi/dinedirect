@@ -1,0 +1,14 @@
+'use client'
+
+import { useEffect } from 'react'
+import { useRouter } from 'next/navigation'
+
+export default function ForgotPasswordRedirectPage() {
+  const router = useRouter()
+
+  useEffect(() => {
+    router.replace('/login?forgot=true')
+  }, [router])
+
+  return null
+}

@@ -1,0 +1,100 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id        String       @id @default(uuid())
+  email     String       @unique
+  password  String
+  role      String       @default("CUSTOMER") // CUSTOMER | RESTAURANT_OWNER
+  name      String
+  phone     String?
+  createdAt DateTime     @default(now())
+  
+  restaurants Restaurant[]
+  orders      Order[]
+}
+
+model Restaurant {
+  id           String         @id @default(uuid())
+  ownerId      String
+  name         String
+  description  String
+  address      String
+  city         String
+  phone        String
+  imageUrl     String?
+  cuisine      String         @default("[]") // JSON string array e.g. ["North Indian", "Chinese"]
+  openingTime  String         @default("09:00")
+  closingTime  String         @default("22:00")
+  isOpen       Boolean        @default(true)
+  isApproved   Boolean        @default(true)
+  fssaiNumber  String?
+  deliveryFee  Float          @default(30.0)
+  minOrder     Float          @default(100.0)
+  createdAt    DateTime       @default(now())
+
+  owner        User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  categories   MenuCategory[]
+  orders       Order[]
+}
+
+model MenuCategory {
+  id           String     @id @default(uuid())
+  restaurantId String
+  name         String
+  sortOrder    Int        @default(0)
+
+  restaurant   Restaurant @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  items        MenuItem[]
+}
+
+model MenuItem {
+  id           String       @id @default(uuid())
+  categoryId   String
+  name         String
+  description  String
+  price        Float
+  imageUrl     String?
+  isVeg        Boolean      @default(true)
+  isAvailable  Boolean      @default(true)
+  prepTimeMins Int          @default(20)
+
+  category     MenuCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  orderItems   OrderItem[]
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  customerId  String
+  restaurantId String
+  status      String      @default("PLACED") // PLACED | ACCEPTED | PREPARING | READY | OUT_FOR_DELIVERY | DELIVERED | REJECTED | CANCELLED
+  totalAmount Float
+  deliveryFee Float       @default(0.0)
+  address     String
+  note        String?
+  paymentMode String      @default("CASH") // CASH | UPI | CARD
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  customer    User        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  restaurant  Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+  items       OrderItem[]
+}
+
+model OrderItem {
+  id         String    @id @default(uuid())
+  orderId    String
+  menuItemId String?
+  name       String
+  price      Float
+  quantity   Int
+
+  order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
+}
