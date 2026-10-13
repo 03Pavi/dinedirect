@@ -64,6 +64,18 @@ function MenuContent() {
     modalId: 'mobile-cart',
   })
 
+  // Record QR Scan event if arriving via Table QR Code
+  useEffect(() => {
+    const qrId = searchParams.get('qrId')
+    if (qrId) {
+      fetch('/api/qr/scan', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ qrId }),
+      }).catch(() => {})
+    }
+  }, [searchParams])
+
   // Dynamic Database Data States
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [allItems, setAllItems] = useState<ExtendedMenuItem[]>([])
@@ -559,9 +571,9 @@ function MenuContent() {
               <Typography variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.1 }}>
                 {totalCartCount} {totalCartCount === 1 ? 'item' : 'items'} added
               </Typography>
-              <Typography variant="caption" sx={{ opacity: 0.9 }}>
+              {/* <Typography variant="caption" sx={{ opacity: 0.9 }}>
                 From {cart.restaurantName || 'Restaurant'}
-              </Typography>
+              </Typography> */}
             </Box>
           </Box>
 
