@@ -43,6 +43,7 @@ model Restaurant {
   categories   MenuCategory[]
   orders       Order[]
   qrCodes      QRCode[]
+  coupons      Coupon[]
 }
 
 model MenuCategory {
@@ -130,5 +131,25 @@ model QRCode {
   lastScannedAt DateTime?
 
   restaurant    Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+
+model Coupon {
+  id             String      @id @default(uuid())
+  restaurantId   String
+  code           String
+  description    String?
+  discountType   String      @default("PERCENTAGE") // PERCENTAGE | FLAT
+  discountValue  Float
+  minOrderAmount Float       @default(0.0)
+  maxDiscount    Float?
+  isActive       Boolean     @default(true)
+  usageCount     Int         @default(0)
+  expiresAt      DateTime?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @default(now()) @updatedAt
+
+  restaurant     Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+
+  @@unique([restaurantId, code])
 }
 

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/utils/require-auth'
 import { supabase } from '@/lib/supabase'
+import { recordCouponUsage } from '@/data/coupon-manager'
 
 export async function GET(req: NextRequest) {
   try {
@@ -189,6 +190,12 @@ export async function POST(req: NextRequest) {
       if (fallbackError) {
         console.error('Fallback items insertion also failed:', fallbackError)
       }
+    }
+
+    if (body.couponCode) {
+      recordCouponUsage(restaurantId, body.couponCode).catch((err) => {
+        console.warn('Could not record coupon usage:', err)
+      })
     }
 
     return NextResponse.json({

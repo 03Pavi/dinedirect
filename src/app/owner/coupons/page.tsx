@@ -224,7 +224,7 @@ export default function OwnerCouponsPage() {
             mb: 4,
           }}
         >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+          <Box sx={{ display: 'flex', alignItems: 'start',flexDirection:"column", gap: 2 }}>
             <IconButton
               component={Link}
               href="/owner/dashboard"

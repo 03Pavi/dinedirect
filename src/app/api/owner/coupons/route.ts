@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
-    const coupons = getRestaurantCoupons(restaurant.id)
+    const coupons = await getRestaurantCoupons(restaurant.id)
     return NextResponse.json({ success: true, restaurant, coupons })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Valid discount value is required' }, { status: 400 })
     }
 
-    const newCoupon = createRestaurantCoupon({
+    const newCoupon = await createRestaurantCoupon({
       restaurantId: restaurant.id,
       code: code.trim().toUpperCase(),
       description,
@@ -101,7 +101,7 @@ export async function PATCH(req: NextRequest) {
       return NextResponse.json({ error: 'Coupon ID is required' }, { status: 400 })
     }
 
-    const updated = updateRestaurantCoupon(restaurant.id, id, updates)
+    const updated = await updateRestaurantCoupon(restaurant.id, id, updates)
     if (!updated) {
       return NextResponse.json({ error: 'Coupon not found' }, { status: 404 })
     }
@@ -136,7 +136,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'Coupon ID is required' }, { status: 400 })
     }
 
-    const deleted = deleteRestaurantCoupon(restaurant.id, id)
+    const deleted = await deleteRestaurantCoupon(restaurant.id, id)
     return NextResponse.json({ success: deleted })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })

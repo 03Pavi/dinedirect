@@ -1,5 +1,4 @@
-import fs from 'fs'
-import path from 'path'
+import { supabase } from '@/lib/supabase'
 
 export interface RestaurantCoupon {
   id: string
@@ -14,40 +13,32 @@ export interface RestaurantCoupon {
   usageCount: number
   expiresAt?: string | null
   createdAt: string
+  updatedAt?: string
 }
 
-const DATA_FILE = path.join(process.cwd(), 'src', 'data', 'coupons.json')
-
-function readAllCoupons(): Record<string, RestaurantCoupon[]> {
+/**
+ * Fetch all coupons for a given restaurant from Supabase.
+ * If restaurant has no coupons, automatically seeds starter offers.
+ */
+export async function getRestaurantCoupons(restaurantId: string): Promise<RestaurantCoupon[]> {
   try {
-    if (fs.existsSync(DATA_FILE)) {
-      const content = fs.readFileSync(DATA_FILE, 'utf-8')
-      return JSON.parse(content)
+    const { data, error } = await supabase
+      .from('Coupon')
+      .select('*')
+      .eq('restaurantId', restaurantId)
+      .order('createdAt', { ascending: false })
+
+    if (error) {
+      console.error('Error fetching coupons from Supabase:', error)
+      return []
     }
-  } catch (err) {
-    console.error('Error reading coupons.json:', err)
-  }
-  return {}
-}
 
-function saveAllCoupons(data: Record<string, RestaurantCoupon[]>): void {
-  try {
-    const dir = path.dirname(DATA_FILE)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true })
+    if (data && data.length > 0) {
+      return data as RestaurantCoupon[]
     }
-    fs.writeFileSync(DATA_FILE, JSON.stringify(data, null, 2), 'utf-8')
-  } catch (err) {
-    console.error('Error saving coupons.json:', err)
-  }
-}
 
-export function getRestaurantCoupons(restaurantId: string): RestaurantCoupon[] {
-  const all = readAllCoupons()
-
-  if (!all[restaurantId] || all[restaurantId].length === 0) {
-    // Initial starter coupons for newly registered restaurants
-    const defaultCoupons: RestaurantCoupon[] = [
+    // Auto-seed initial starter coupons if restaurant has no coupons yet
+    const defaultCoupons: Omit<RestaurantCoupon, 'createdAt' | 'updatedAt'>[] = [
       {
         id: `cpn-${restaurantId}-1`,
         restaurantId,
@@ -60,7 +51,6 @@ export function getRestaurantCoupons(restaurantId: string): RestaurantCoupon[] {
         isActive: true,
         usageCount: 18,
         expiresAt: null,
-        createdAt: new Date(Date.now() - 7 * 86400000).toISOString(),
       },
       {
         id: `cpn-${restaurantId}-2`,
@@ -74,7 +64,6 @@ export function getRestaurantCoupons(restaurantId: string): RestaurantCoupon[] {
         isActive: true,
         usageCount: 34,
         expiresAt: null,
-        createdAt: new Date(Date.now() - 14 * 86400000).toISOString(),
       },
       {
         id: `cpn-${restaurantId}-3`,
@@ -88,19 +77,30 @@ export function getRestaurantCoupons(restaurantId: string): RestaurantCoupon[] {
         isActive: true,
         usageCount: 12,
         expiresAt: null,
-        createdAt: new Date(Date.now() - 3 * 86400000).toISOString(),
       },
     ]
 
-    all[restaurantId] = defaultCoupons
-    saveAllCoupons(all)
-    return defaultCoupons
-  }
+    const { data: inserted, error: insertError } = await supabase
+      .from('Coupon')
+      .insert(defaultCoupons)
+      .select()
 
-  return all[restaurantId]
+    if (insertError) {
+      console.warn('Could not auto-seed starter coupons in Supabase:', insertError.message)
+      return []
+    }
+
+    return (inserted as RestaurantCoupon[]) || []
+  } catch (err) {
+    console.error('Unexpected error in getRestaurantCoupons:', err)
+    return []
+  }
 }
 
-export function createRestaurantCoupon(params: {
+/**
+ * Create a new coupon for a restaurant in Supabase.
+ */
+export async function createRestaurantCoupon(params: {
   restaurantId: string
   code: string
   description?: string
@@ -109,117 +109,193 @@ export function createRestaurantCoupon(params: {
   minOrderAmount?: number
   maxDiscount?: number
   expiresAt?: string | null
-}): RestaurantCoupon {
-  const all = readAllCoupons()
-  const list = all[params.restaurantId] || []
-
+}): Promise<RestaurantCoupon> {
   const formattedCode = params.code.trim().toUpperCase()
 
-  // Prevent duplicate codes for the same restaurant
-  const existingIdx = list.findIndex((c) => c.code === formattedCode)
-  if (existingIdx !== -1) {
+  // Check duplicate coupon code for this restaurant
+  const { data: existing } = await supabase
+    .from('Coupon')
+    .select('id')
+    .eq('restaurantId', params.restaurantId)
+    .eq('code', formattedCode)
+    .maybeSingle()
+
+  if (existing) {
     throw new Error(`A coupon with code "${formattedCode}" already exists for this restaurant.`)
   }
 
-  const newCoupon: RestaurantCoupon = {
+  const newCouponPayload = {
     id: `cpn-${params.restaurantId}-${Date.now().toString(36)}`,
     restaurantId: params.restaurantId,
     code: formattedCode,
-    description: params.description?.trim() || `${params.discountType === 'PERCENTAGE' ? `${params.discountValue}% OFF` : `₹${params.discountValue} OFF`} on your order`,
+    description:
+      params.description?.trim() ||
+      `${params.discountType === 'PERCENTAGE' ? `${params.discountValue}% OFF` : `₹${params.discountValue} OFF`} on your order`,
     discountType: params.discountType,
     discountValue: Number(params.discountValue),
     minOrderAmount: Number(params.minOrderAmount || 0),
-    maxDiscount: params.maxDiscount ? Number(params.maxDiscount) : undefined,
+    maxDiscount: params.maxDiscount ? Number(params.maxDiscount) : null,
     isActive: true,
     usageCount: 0,
     expiresAt: params.expiresAt || null,
-    createdAt: new Date().toISOString(),
   }
 
-  list.unshift(newCoupon)
-  all[params.restaurantId] = list
-  saveAllCoupons(all)
+  const { data, error } = await supabase
+    .from('Coupon')
+    .insert(newCouponPayload)
+    .select()
+    .single()
 
-  return newCoupon
+  if (error || !data) {
+    throw new Error(error?.message || 'Failed to create coupon in Supabase')
+  }
+
+  return data as RestaurantCoupon
 }
 
-export function updateRestaurantCoupon(
+/**
+ * Update an existing coupon in Supabase.
+ */
+export async function updateRestaurantCoupon(
   restaurantId: string,
   couponId: string,
   updates: Partial<Omit<RestaurantCoupon, 'id' | 'restaurantId'>>
-): RestaurantCoupon | null {
-  const all = readAllCoupons()
-  const list = all[restaurantId] || []
-  const idx = list.findIndex((c) => c.id === couponId)
-
-  if (idx === -1) return null
-
-  list[idx] = {
-    ...list[idx],
+): Promise<RestaurantCoupon | null> {
+  const payload: Record<string, any> = {
     ...updates,
-    ...(updates.code ? { code: updates.code.trim().toUpperCase() } : {}),
+    updatedAt: new Date().toISOString(),
   }
 
-  all[restaurantId] = list
-  saveAllCoupons(all)
-  return list[idx]
-}
-
-export function deleteRestaurantCoupon(restaurantId: string, couponId: string): boolean {
-  const all = readAllCoupons()
-  if (!all[restaurantId]) return false
-
-  const initialLength = all[restaurantId].length
-  all[restaurantId] = all[restaurantId].filter((c) => c.id !== couponId)
-
-  if (all[restaurantId].length !== initialLength) {
-    saveAllCoupons(all)
-    return true
+  if (updates.code) {
+    payload.code = updates.code.trim().toUpperCase()
   }
 
-  return false
+  const { data, error } = await supabase
+    .from('Coupon')
+    .update(payload)
+    .eq('id', couponId)
+    .eq('restaurantId', restaurantId)
+    .select()
+    .maybeSingle()
+
+  if (error) {
+    console.error('Error updating coupon in Supabase:', error)
+    throw new Error(error.message)
+  }
+
+  return (data as RestaurantCoupon) || null
 }
 
-export function validateCoupon(
+/**
+ * Delete a coupon from Supabase.
+ */
+export async function deleteRestaurantCoupon(restaurantId: string, couponId: string): Promise<boolean> {
+  const { error } = await supabase
+    .from('Coupon')
+    .delete()
+    .eq('id', couponId)
+    .eq('restaurantId', restaurantId)
+
+  if (error) {
+    console.error('Error deleting coupon in Supabase:', error)
+    return false
+  }
+
+  return true
+}
+
+/**
+ * Validate a coupon code for an order.
+ */
+export async function validateCoupon(
   restaurantId: string,
   code: string,
   subtotal: number
-): { valid: boolean; discount: number; message: string; coupon?: RestaurantCoupon } {
+): Promise<{ valid: boolean; discount: number; message: string; coupon?: RestaurantCoupon }> {
   const formattedCode = code.trim().toUpperCase()
-  const coupons = getRestaurantCoupons(restaurantId)
 
-  const found = coupons.find((c) => c.code === formattedCode && c.isActive)
+  const { data, error } = await supabase
+    .from('Coupon')
+    .select('*')
+    .eq('restaurantId', restaurantId)
+    .eq('code', formattedCode)
+    .maybeSingle()
 
-  if (!found) {
+  if (error || !data) {
     return {
       valid: false,
       discount: 0,
-      message: `Invalid or inactive coupon code "${formattedCode}".`,
+      message: `Invalid coupon code "${formattedCode}".`,
     }
   }
 
-  if (subtotal < found.minOrderAmount) {
+  const coupon = data as RestaurantCoupon
+
+  if (!coupon.isActive) {
     return {
       valid: false,
       discount: 0,
-      message: `Minimum order of ₹${found.minOrderAmount} required for coupon ${formattedCode}. Add ₹${found.minOrderAmount - subtotal} more!`,
+      message: `Coupon "${formattedCode}" is currently inactive.`,
+    }
+  }
+
+  if (coupon.expiresAt && new Date(coupon.expiresAt).getTime() < Date.now()) {
+    return {
+      valid: false,
+      discount: 0,
+      message: `Coupon "${formattedCode}" has expired.`,
+    }
+  }
+
+  if (subtotal < coupon.minOrderAmount) {
+    return {
+      valid: false,
+      discount: 0,
+      message: `Minimum order of ₹${coupon.minOrderAmount} required for coupon ${formattedCode}. Add ₹${coupon.minOrderAmount - subtotal} more!`,
     }
   }
 
   let discount = 0
-  if (found.discountType === 'PERCENTAGE') {
-    discount = Math.round((subtotal * found.discountValue) / 100)
-    if (found.maxDiscount && discount > found.maxDiscount) {
-      discount = found.maxDiscount
+  if (coupon.discountType === 'PERCENTAGE') {
+    discount = Math.round((subtotal * coupon.discountValue) / 100)
+    if (coupon.maxDiscount && discount > coupon.maxDiscount) {
+      discount = coupon.maxDiscount
     }
   } else {
-    discount = Math.min(found.discountValue, subtotal)
+    discount = Math.min(coupon.discountValue, subtotal)
   }
 
   return {
     valid: true,
     discount,
     message: `Coupon ${formattedCode} applied successfully! You saved ₹${discount}.`,
-    coupon: found,
+    coupon,
+  }
+}
+
+/**
+ * Increment usage count of a redeemed coupon.
+ */
+export async function recordCouponUsage(restaurantId: string, code: string): Promise<void> {
+  try {
+    const formattedCode = code.trim().toUpperCase()
+    const { data } = await supabase
+      .from('Coupon')
+      .select('id, usageCount')
+      .eq('restaurantId', restaurantId)
+      .eq('code', formattedCode)
+      .maybeSingle()
+
+    if (data?.id) {
+      await supabase
+        .from('Coupon')
+        .update({
+          usageCount: (data.usageCount || 0) + 1,
+          updatedAt: new Date().toISOString(),
+        })
+        .eq('id', data.id)
+    }
+  } catch (err) {
+    console.error('Error incrementing coupon usage count:', err)
   }
 }

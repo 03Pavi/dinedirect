@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ valid: false, message: 'Invalid coupon code.' }, { status: 400 })
     }
 
-    const result = validateCoupon(restaurantId, code, Number(subtotal || 0))
+    const result = await validateCoupon(restaurantId, code, Number(subtotal || 0))
 
     if (!result.valid) {
       return NextResponse.json({ valid: false, message: result.message }, { status: 400 })
@@ -50,7 +50,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ coupons: [] })
     }
 
-    const coupons = getRestaurantCoupons(restaurantId).filter((c) => c.isActive)
+    const allCoupons = await getRestaurantCoupons(restaurantId)
+    const coupons = allCoupons.filter((c) => c.isActive)
     return NextResponse.json({ coupons })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })
