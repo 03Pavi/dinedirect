@@ -5,7 +5,7 @@
 
 CREATE TABLE IF NOT EXISTS "QRCode" (
     "id" TEXT PRIMARY KEY,
-    "restaurantId" UUID NOT NULL REFERENCES "Restaurant"("id") ON DELETE CASCADE,
+    "restaurantId" TEXT NOT NULL REFERENCES "Restaurant"("id") ON DELETE CASCADE,
     "tableNumber" TEXT NOT NULL,
     "label" TEXT,
     "code" TEXT UNIQUE NOT NULL,
@@ -24,7 +24,7 @@ CREATE INDEX IF NOT EXISTS "idx_qrcode_code" ON "QRCode"("code");
 -- Row Level Security (RLS)
 ALTER TABLE "QRCode" ENABLE ROW LEVEL SECURITY;
 
--- Allow public read access (customers scanning QR code)
+-- Security Policies
 DO $$ BEGIN
     IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'QRCode' AND policyname = 'Public can view qrcodes') THEN
         CREATE POLICY "Public can view qrcodes" ON "QRCode" FOR SELECT USING (true);

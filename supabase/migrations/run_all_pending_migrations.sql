@@ -61,7 +61,7 @@ ON CONFLICT ("keyword") DO NOTHING;
 -- ==============================================================================
 CREATE TABLE IF NOT EXISTS "QRCode" (
     "id" TEXT PRIMARY KEY,
-    "restaurantId" UUID NOT NULL REFERENCES "Restaurant"("id") ON DELETE CASCADE,
+    "restaurantId" TEXT NOT NULL REFERENCES "Restaurant"("id") ON DELETE CASCADE,
     "tableNumber" TEXT NOT NULL,
     "label" TEXT,
     "code" TEXT UNIQUE NOT NULL,
