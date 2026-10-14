@@ -14,7 +14,7 @@ export interface StatusConfig {
 
 export const STATUS_CONFIGS: Record<OrderStatus, StatusConfig> = {
   PLACED: {
-    label: 'New Placed',
+    label: 'New',
     badgeLabel: 'New',
     color: '#ea580c',
     bgColor: '#fff7ed',

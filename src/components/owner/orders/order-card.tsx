@@ -145,7 +145,7 @@ export function OrderCard({
               gap: 0.3,
             }}
           >
-            Review & Confirm →
+           View →
           </Typography>
         </Box>
       </Card>

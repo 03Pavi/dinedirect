@@ -231,7 +231,7 @@ export function OrderTicketDialog({ order, onClose, onUpdateStatus }: OrderTicke
                   '&:hover': { bgcolor: '#c2410c' },
                 }}
               >
-                ✅ Confirmed (Send to Kitchen) 🍳
+                ✅ Confirmed
               </Button>
             </Box>
 
