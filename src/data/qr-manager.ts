@@ -37,8 +37,10 @@ function saveLocalQRCodes(data: Record<string, QRCodeItem[]>): void {
  */
 export async function getRestaurantQRCodes(
   restaurantId: string,
-  host: string = 'http://localhost:3000'
+  host?: string
 ): Promise<QRCodeItem[]> {
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://dinedirect-kappa.vercel.app').replace(/\/+$/, '')
+  const effectiveHost = host || appUrl
   try {
     // 1. Try Supabase first
     const { data, error } = await supabase
@@ -54,7 +56,7 @@ export async function getRestaurantQRCodes(
         tableNumber: d.tableNumber,
         label: d.label,
         code: d.code,
-        url: d.url || `${host}/home?restaurantId=${encodeURIComponent(restaurantId)}&table=${encodeURIComponent(d.tableNumber)}&qrId=${encodeURIComponent(d.id)}`,
+        url: d.url || `${effectiveHost}/home?restaurantId=${encodeURIComponent(restaurantId)}&table=${encodeURIComponent(d.tableNumber)}&qrId=${encodeURIComponent(d.id)}`,
         color: d.color || '#ea580c',
         scansCount: d.scansCount || 0,
         qrType: (d.qrType as QRType) || 'TABLE',
@@ -83,7 +85,8 @@ export async function createRestaurantQRCode(params: {
   qrType?: QRType
   host?: string
 }): Promise<QRCodeItem> {
-  const host = params.host || 'http://localhost:3000'
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://dinedirect-kappa.vercel.app').replace(/\/+$/, '')
+  const host = params.host || appUrl
   const id = `qr-${params.restaurantId}-${Date.now().toString(36)}`
   const sanitizedTable = params.tableNumber.trim()
   const sanitizedCode = `DINE-${params.restaurantId.slice(0, 4).toUpperCase()}-${sanitizedTable.replace(/\s+/g, '').toUpperCase()}`

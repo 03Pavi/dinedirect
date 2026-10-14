@@ -32,6 +32,8 @@ interface DishCardProps {
   onAddToCart: (item: ExtendedMenuItem) => void
   onUpdateQuantity: (menuItemId: string, newQty: number) => void
   onSelectRestaurant?: (restaurant: Restaurant) => void
+  disabled?: boolean
+  disabledReason?: string
 }
 
 export function DishCard({
@@ -40,6 +42,8 @@ export function DishCard({
   onAddToCart,
   onUpdateQuantity,
   onSelectRestaurant,
+  disabled,
+  disabledReason,
 }: DishCardProps) {
   const fallbackImages = [
     'https://images.unsplash.com/photo-1546069901-ba9599a7e63c?auto=format&fit=crop&w=500&q=80',
@@ -52,6 +56,18 @@ export function DishCard({
     fallbackImages[Math.abs(item.name.charCodeAt(0) || 0) % fallbackImages.length]
 
   const restaurant = item.category?.restaurant
+  const isRestaurantClosed = restaurant?.isOpen === false
+  const isItemUnavailable = item.isAvailable === false
+  const isDisabled = Boolean(disabled || isRestaurantClosed || isItemUnavailable)
+
+  const badgeLabel =
+    disabledReason ||
+    (isRestaurantClosed ? 'STORE CLOSED' : isItemUnavailable ? 'OUT OF STOCK' : 'UNAVAILABLE')
+  const buttonLabel = isRestaurantClosed
+    ? 'Closed'
+    : isItemUnavailable
+      ? 'Out of Stock'
+      : 'Unavailable'
 
   return (
     <Card
@@ -59,20 +75,23 @@ export function DishCard({
       sx={{
         borderRadius: '16px',
         border: '1.5px solid #e2e8f0',
-        bgcolor: '#ffffff',
+        bgcolor: isDisabled ? '#f8fafc' : '#ffffff',
+        opacity: isDisabled ? 0.78 : 1,
         overflow: 'hidden',
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
         transition: 'all 0.2s ease-in-out',
-        '&:hover': {
-          borderColor: '#ea580c',
-          transform: 'translateY(-3px)',
-          boxShadow: '0 12px 24px -6px rgba(0, 0, 0, 0.07)',
-          '& .dish-img': {
-            transform: 'scale(1.05)',
+        ...(!isDisabled && {
+          '&:hover': {
+            borderColor: '#ea580c',
+            transform: 'translateY(-3px)',
+            boxShadow: '0 12px 24px -6px rgba(0, 0, 0, 0.07)',
+            '& .dish-img': {
+              transform: 'scale(1.05)',
+            },
           },
-        },
+        }),
       }}
     >
       {/* Dish Image Header */}
@@ -86,9 +105,40 @@ export function DishCard({
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            transition: 'transform 0.3s ease',
+            filter: isDisabled ? 'grayscale(0.7)' : 'none',
+            transition: 'transform 0.3s ease, filter 0.3s ease',
           }}
         />
+
+        {/* Disabled Overlay Badge */}
+        {isDisabled && (
+          <Box
+            sx={{
+              position: 'absolute',
+              inset: 0,
+              bgcolor: 'rgba(15, 23, 42, 0.45)',
+              backdropFilter: 'blur(1px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 3,
+              p: 1,
+            }}
+          >
+            <Chip
+              label={badgeLabel}
+              size="small"
+              sx={{
+                bgcolor: isRestaurantClosed ? '#e11d48' : '#475569',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.72rem',
+                letterSpacing: '0.04em',
+                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+              }}
+            />
+          </Box>
+        )}
 
         {/* Veg / Non-Veg Indicator */}
         <Box
@@ -105,6 +155,7 @@ export function DishCard({
             alignItems: 'center',
             justifyContent: 'center',
             boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
+            zIndex: 4,
           }}
         >
           <Box
@@ -227,8 +278,28 @@ export function DishCard({
             </Typography>
           </Box>
 
-          {/* Stepper or Add button */}
-          {quantityInCart > 0 ? (
+          {/* Stepper, Add button, or Disabled state */}
+          {isDisabled ? (
+            <Button
+              variant="outlined"
+              size="small"
+              disabled
+              sx={{
+                bgcolor: '#f1f5f9',
+                color: '#94a3b8 !important',
+                borderColor: '#e2e8f0 !important',
+                fontWeight: 700,
+                textTransform: 'none',
+                borderRadius: '20px',
+                px: 2,
+                py: 0.6,
+                fontSize: '0.78rem',
+                cursor: 'not-allowed',
+              }}
+            >
+              {buttonLabel}
+            </Button>
+          ) : quantityInCart > 0 ? (
             <Stack
               direction="row"
               alignItems="center"

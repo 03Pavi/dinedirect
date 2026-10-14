@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="dineGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF7A00" />
+      <stop offset="100%" stop-color="#EA580C" />
+    </linearGradient>
+    <filter id="softShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="1.5" stdDeviation="1.5" flood-color="#000000" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  <!-- Background Rounded Badge -->
+  <rect width="64" height="64" rx="16" fill="url(#dineGrad)" />
+  
+  <!-- Subtle inner border highlight -->
+  <rect x="1" y="1" width="62" height="62" rx="15" fill="none" stroke="#FFFFFF" stroke-opacity="0.2" stroke-width="1.5" />
+
+  <!-- Cutlery Silhouette (Fork & Spoon Cross) -->
+  <g filter="url(#softShadow)" fill="#FFFFFF">
+    <!-- Crossed Spoon -->
+    <path transform="translate(32, 32) rotate(45) translate(-32, -32)" d="M30 14c-4.4 0-8 3.6-8 8 0 3.5 2.2 6.5 5.5 7.6V48a2.5 2.5 0 0 0 5 0V29.6c3.3-1.1 5.5-4.1 5.5-7.6 0-4.4-3.6-8-8-8Z" />
+    <!-- Crossed Fork -->
+    <path transform="translate(32, 32) rotate(-45) translate(-32, -32)" d="M25 15v10c0 2.8 2.2 5 5 5v18a2 2 0 0 0 4 0V30c2.8 0 5-2.2 5-5V15a1 1 0 0 0-2 0v7h-2.5v-7a1 1 0 0 0-2 0v7H30v-7a1 1 0 0 0-2 0v7h-2.5v-7a1 1 0 0 0-2 0Z" />
+  </g>
+</svg>

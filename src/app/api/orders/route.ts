@@ -71,6 +71,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
+    if (restaurant.isOpen === false) {
+      return NextResponse.json(
+        { error: 'This restaurant is currently closed and not accepting new orders.' },
+        { status: 400 }
+      )
+    }
+
     const subtotal = items.reduce((sum: number, it: any) => sum + Number(it.price) * Number(it.quantity), 0)
     const deliveryFee = Number(restaurant.deliveryFee || 0)
     const totalAmount = subtotal + deliveryFee

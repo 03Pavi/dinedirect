@@ -157,6 +157,10 @@ function SearchContent() {
 
   // Cart Handlers
   const handleAddToCart = (item: ExtendedMenuItem) => {
+    if (item.category?.restaurant?.isOpen === false || item.isAvailable === false) {
+      return
+    }
+
     const restId =
       item.category?.restaurantId || item.category?.restaurant?.id || 'default-restaurant'
     const restName = item.category?.restaurant?.name || 'Restaurant'

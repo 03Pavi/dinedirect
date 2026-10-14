@@ -18,6 +18,19 @@ export interface MenuCategory {
   items?: MenuItem[]
 }
 
+export interface PaginationInfo {
+  page: number
+  limit: number
+  total: number
+  totalPages: number
+  hasMore: boolean
+}
+
+export interface PaginatedItemsResponse<T = MenuItem> {
+  items: T[]
+  pagination?: PaginationInfo
+}
+
 export interface MenuState {
   categories: MenuCategory[]
   items: MenuItem[]

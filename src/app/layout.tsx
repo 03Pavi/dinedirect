@@ -58,6 +58,15 @@ export const metadata: Metadata = {
       },
     ],
   },
+  icons: {
+    icon: [
+      { url: '/favicon.ico', sizes: 'any' },
+      { url: '/icon.svg', type: 'image/svg+xml' },
+    ],
+    apple: [
+      { url: '/apple-icon', sizes: '180x180', type: 'image/png' },
+    ],
+  },
   twitter: {
     card: 'summary_large_image',
     title: 'DineDirect | Smart Restaurant-First Dining & Ordering',
@@ -77,11 +86,6 @@ export const metadata: Metadata = {
     },
   },
   manifest: '/manifest.json',
-  icons: {
-    icon: '/logo.svg',
-    shortcut: '/logo.svg',
-    apple: '/logo.svg',
-  },
 }
 
 export default function RootLayout({

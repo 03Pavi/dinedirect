@@ -41,15 +41,37 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const pageParam = searchParams.get('page')
+    const limitParam = searchParams.get('limit')
+
+    const page = pageParam ? Math.max(1, parseInt(pageParam, 10)) : 1
+    const limit = limitParam
+      ? Math.max(1, parseInt(limitParam, 10))
+      : pageParam
+      ? 10
+      : undefined
+
     let query = supabase
       .from('MenuItem')
-      .select('*, category:MenuCategory(id, name, restaurantId, restaurant:Restaurant(id, name, city, deliveryFee, minOrder, imageUrl, isOpen))')
+      .select(
+        '*, category:MenuCategory(id, name, restaurantId, restaurant:Restaurant(id, name, city, deliveryFee, minOrder, imageUrl, isOpen))',
+        { count: 'exact' }
+      )
 
     if (categoryId) {
       query = query.eq('categoryId', categoryId)
     } else if (allowedCategoryIds) {
       if (allowedCategoryIds.length === 0) {
-        return NextResponse.json({ items: [] })
+        return NextResponse.json({
+          items: [],
+          pagination: {
+            page: 1,
+            limit: limit || 10,
+            total: 0,
+            totalPages: 1,
+            hasMore: false,
+          },
+        })
       }
       query = query.in('categoryId', allowedCategoryIds)
     }
@@ -66,13 +88,34 @@ export async function GET(req: NextRequest) {
       query = query.ilike('name', `%${search.trim()}%`)
     }
 
-    const { data: items, error } = await query.order('name', { ascending: true })
+    // Apply pagination range if limit is set
+    if (limit !== undefined && !isNaN(limit) && limit > 0) {
+      const from = (page - 1) * limit
+      const to = from + limit - 1
+      query = query.range(from, to)
+    }
+
+    const { data: items, error, count } = await query.order('name', { ascending: true })
 
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
 
-    return NextResponse.json({ items: items || [] })
+    const total = count ?? items?.length ?? 0
+    const effectiveLimit = limit || total || 10
+    const totalPages = Math.max(1, Math.ceil(total / effectiveLimit))
+    const hasMore = limit !== undefined ? page < totalPages : false
+
+    return NextResponse.json({
+      items: items || [],
+      pagination: {
+        page,
+        limit: effectiveLimit,
+        total,
+        totalPages,
+        hasMore,
+      },
+    })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })
   }

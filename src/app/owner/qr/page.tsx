@@ -92,14 +92,17 @@ export default function OwnerQRPage() {
     severity: 'success',
   })
 
-  // Origin for URL generation
-  const [origin, setOrigin] = useState('http://localhost:3000')
+  // Origin for QR URL generation prioritizing NEXT_PUBLIC_APP_URL
+  const appBaseUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://dinedirect-kappa.vercel.app').replace(/\/+$/, '')
+  const [origin, setOrigin] = useState(appBaseUrl)
 
   useEffect(() => {
-    if (typeof window !== 'undefined') {
+    if (appBaseUrl) {
+      setOrigin(appBaseUrl)
+    } else if (typeof window !== 'undefined') {
       setOrigin(window.location.origin)
     }
-  }, [])
+  }, [appBaseUrl])
 
   // Auth & Initial Data Fetch
   useEffect(() => {

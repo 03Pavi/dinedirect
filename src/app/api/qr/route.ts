@@ -24,7 +24,8 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Restaurant not found' }, { status: 404 })
     }
 
-    const origin = req.nextUrl.origin || 'http://localhost:3000'
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://dinedirect-kappa.vercel.app').replace(/\/+$/, '')
+    const origin = appUrl || req.nextUrl.origin || 'https://dinedirect-kappa.vercel.app'
     const qrs = await getRestaurantQRCodes(restaurant.id, origin)
 
     return NextResponse.json({ success: true, restaurant, qrs })
@@ -57,7 +58,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Table number or label is required' }, { status: 400 })
     }
 
-    const origin = req.nextUrl.origin || 'http://localhost:3000'
+    const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://dinedirect-kappa.vercel.app').replace(/\/+$/, '')
+    const origin = appUrl || req.nextUrl.origin || 'https://dinedirect-kappa.vercel.app'
     const qr = await createRestaurantQRCode({
       restaurantId: restaurant.id,
       tableNumber: tableNumber.trim(),

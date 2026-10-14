@@ -11,8 +11,12 @@ import {
   DialogContent,
   DialogActions,
   Divider,
+  IconButton,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material'
 import PrintIcon from '@mui/icons-material/Print'
+import CloseIcon from '@mui/icons-material/Close'
 import { Order, OrderStatus } from '@/types/order-types'
 import { STATUS_CONFIGS } from './order-config'
 
@@ -23,6 +27,9 @@ interface OrderTicketDialogProps {
 }
 
 export function OrderTicketDialog({ order, onClose, onUpdateStatus }: OrderTicketDialogProps) {
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
+
   if (!order) return null
 
   const isIncoming = order.status === 'PLACED' || order.status === 'ACCEPTED'
@@ -38,36 +45,61 @@ export function OrderTicketDialog({ order, onClose, onUpdateStatus }: OrderTicke
 
   return (
     <Dialog
+      fullScreen={isMobile}
       open={Boolean(order)}
       onClose={onClose}
       maxWidth="sm"
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '16px',
-          p: 1,
+          borderRadius: isMobile ? 0 : '16px',
+          p: isMobile ? 0 : 1,
+          m: isMobile ? 0 : undefined,
         },
       }}
     >
-      <DialogTitle sx={{ pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a' }}>
+      <DialogTitle
+        sx={{
+          pb: 1,
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          p: isMobile ? 2 : undefined,
+          borderBottom: isMobile ? '1px solid #f1f5f9' : undefined,
+        }}
+      >
+        <Box sx={{ pr: 1 }}>
+          <Typography
+            variant="h6"
+            sx={{
+              fontWeight: 800,
+              color: '#0f172a',
+              fontSize: isMobile ? '1.05rem' : '1.25rem',
+            }}
+          >
             Kitchen Order Ticket (KOT)
           </Typography>
           <Typography variant="caption" sx={{ color: '#64748b' }}>
             Order #{order.id.slice(-8).toUpperCase()} • {orderDateFormatted}, {orderTimeFormatted}
           </Typography>
         </Box>
-        <Chip
-          label={`${config.icon} ${config.label}`}
-          size="small"
-          sx={{
-            fontWeight: 800,
-            bgcolor: config.bgColor,
-            color: config.color,
-            border: `1px solid ${config.borderColor}`,
-          }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Chip
+            label={`${config.icon} ${config.label}`}
+            size="small"
+            sx={{
+              fontWeight: 800,
+              bgcolor: config.bgColor,
+              color: config.color,
+              border: `1px solid ${config.borderColor}`,
+            }}
+          />
+          {isMobile && (
+            <IconButton onClick={onClose} size="small" sx={{ color: '#64748b' }}>
+              <CloseIcon sx={{ fontSize: 20 }} />
+            </IconButton>
+          )}
+        </Box>
       </DialogTitle>
 
       <DialogContent dividers sx={{ py: 2 }}>
