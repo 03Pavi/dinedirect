@@ -14,6 +14,9 @@ import {
   FormControlLabel,
   Skeleton,
   Divider,
+  Button,
+  Snackbar,
+  Alert,
 } from '@mui/material'
 import StorefrontIcon from '@mui/icons-material/Storefront'
 import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu'
@@ -24,11 +27,12 @@ import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import QrCode2Icon from '@mui/icons-material/QrCode2'
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import PhoneIcon from '@mui/icons-material/Phone'
-
+import EditOutlinedIcon from '@mui/icons-material/EditOutlined'
 
 import Navbar from '@/components/common/navbar'
 import { RestaurantInput } from '@/schemas/restaurant-schema'
 import { RestaurantSetupWizard } from '@/components/owner/restaurant-setup-wizard'
+import { RestaurantEditDialog } from '@/components/owner/restaurant-edit-dialog'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import {
   selectCurrentUser,
@@ -61,6 +65,12 @@ export default function OwnerDashboardPage() {
   const [formError, setFormError] = useState<string | null>(null)
   const [updatingStatus, setUpdatingStatus] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [editModalOpen, setEditModalOpen] = useState(false)
+  const [toast, setToast] = useState<{ open: boolean; message: string; severity: 'success' | 'error' | 'info' }>({
+    open: false,
+    message: '',
+    severity: 'info',
+  })
 
   // Check auth & redirect if not owner
   useEffect(() => {
@@ -156,38 +166,71 @@ export default function OwnerDashboardPage() {
                   />
                 </Box>
 
-                {/* Dedicated Store Open/Closed Toggle Control */}
-                <Box
-                  sx={{
-                    display: 'inline-flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    bgcolor: restaurant.isOpen ? '#f0fdf4' : '#f8fafc',
-                    border: '1px solid',
-                    borderColor: restaurant.isOpen ? '#bbf7d0' : '#e2e8f0',
-                    borderRadius: '30px',
-                    py: 0.6,
-                    px: 2,
-                    transition: 'all 0.2s ease',
-                  }}
-                >
-                  <Typography
+                {/* Top Right Controls: Edit Details Button & Store Toggle */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+                  {/* Edit Restaurant Details Button */}
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    startIcon={<EditOutlinedIcon sx={{ fontSize: 17 }} />}
+                    onClick={() => setEditModalOpen(true)}
                     sx={{
+                      borderColor: '#e2e8f0',
+                      color: '#334155',
+                      bgcolor: '#ffffff',
+                      borderRadius: '30px',
+                      py: 0.6,
+                      px: 2,
                       fontWeight: 700,
-                      color: restaurant.isOpen ? '#166534' : '#64748b',
                       fontSize: '0.85rem',
-                      userSelect: 'none',
+                      textTransform: 'none',
+                      boxShadow: '0 1px 2px rgba(0,0,0,0.03)',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        borderColor: '#ea580c',
+                        color: '#ea580c',
+                        bgcolor: '#fff7ed',
+                        transform: 'translateY(-1px)',
+                        boxShadow: '0 4px 10px rgba(234, 88, 12, 0.12)',
+                      },
                     }}
                   >
-                    {updatingStatus ? 'Updating...' : restaurant.isOpen ? 'Store Open' : 'Store Closed'}
-                  </Typography>
-                  <Switch
-                    checked={restaurant.isOpen}
-                    onChange={handleToggleOpen}
-                    disabled={updatingStatus}
-                    color="success"
-                    size="small"
-                  />
+                    Edit Details
+                  </Button>
+
+                  {/* Dedicated Store Open/Closed Toggle Control */}
+                  <Box
+                    sx={{
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      bgcolor: restaurant.isOpen ? '#f0fdf4' : '#f8fafc',
+                      border: '1px solid',
+                      borderColor: restaurant.isOpen ? '#bbf7d0' : '#e2e8f0',
+                      borderRadius: '30px',
+                      py: 0.6,
+                      px: 2,
+                      transition: 'all 0.2s ease',
+                    }}
+                  >
+                    <Typography
+                      sx={{
+                        fontWeight: 700,
+                        color: restaurant.isOpen ? '#166534' : '#64748b',
+                        fontSize: '0.85rem',
+                        userSelect: 'none',
+                      }}
+                    >
+                      {updatingStatus ? 'Updating...' : restaurant.isOpen ? 'Store Open' : 'Store Closed'}
+                    </Typography>
+                    <Switch
+                      checked={restaurant.isOpen}
+                      onChange={handleToggleOpen}
+                      disabled={updatingStatus}
+                      color="success"
+                      size="small"
+                    />
+                  </Box>
                 </Box>
               </Box>
 
@@ -514,6 +557,39 @@ export default function OwnerDashboardPage() {
           />
         )}
       </Container>
+
+      {/* Edit Restaurant Modal (Desktop Center Dialog / Mobile Fullscreen) */}
+      {restaurant && (
+        <RestaurantEditDialog
+          open={editModalOpen}
+          onClose={() => setEditModalOpen(false)}
+          restaurant={restaurant}
+          onSuccess={(updated) => {
+            setToast({
+              open: true,
+              message: `Restaurant details updated successfully!`,
+              severity: 'success',
+            })
+          }}
+        />
+      )}
+
+      {/* Toast Feedback */}
+      <Snackbar
+        open={toast.open}
+        autoHideDuration={4000}
+        onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+        anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
+      >
+        <Alert
+          onClose={() => setToast((prev) => ({ ...prev, open: false }))}
+          severity={toast.severity}
+          variant="filled"
+          sx={{ width: '100%', borderRadius: '10px', fontWeight: 600 }}
+        >
+          {toast.message}
+        </Alert>
+      </Snackbar>
     </Box>
   )
 }
