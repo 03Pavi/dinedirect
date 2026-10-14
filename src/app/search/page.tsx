@@ -40,16 +40,6 @@ import { addItem, updateQuantity } from '@/store/slices/cart-slice'
 import { useHistoryModal } from '@/hooks/use-history-modal'
 import { useDebounce } from '@/hooks/use-debounce'
 
-const INITIAL_KEYWORDS: KeywordItem[] = [
-  { id: '1', keyword: 'Biryani', category: 'trending', sortOrder: 1 },
-  { id: '2', keyword: 'Pizza', category: 'trending', sortOrder: 2 },
-  { id: '3', keyword: 'Burger', category: 'trending', sortOrder: 3 },
-  { id: '4', keyword: 'Paneer', category: 'trending', sortOrder: 4 },
-  { id: '5', keyword: 'Momos', category: 'trending', sortOrder: 5 },
-  { id: '6', keyword: 'Rolls', category: 'trending', sortOrder: 6 },
-  { id: '7', keyword: 'Thali', category: 'trending', sortOrder: 7 },
-  { id: '8', keyword: 'Cold Coffee', category: 'trending', sortOrder: 8 },
-]
 
 function SearchContent() {
   const router = useRouter()
@@ -79,7 +69,7 @@ function SearchContent() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [allItems, setAllItems] = useState<ExtendedMenuItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [trendingKeywords, setTrendingKeywords] = useState<KeywordItem[]>(INITIAL_KEYWORDS)
+  const [trendingKeywords, setTrendingKeywords] = useState<KeywordItem[]>([])
   const [keywordManagerOpen, setKeywordManagerOpen] = useState(false)
 
   // Responsive Drawer States
@@ -106,7 +96,7 @@ function SearchContent() {
           apiClient.get<{ items: ExtendedMenuItem[] }>('/api/menu/items'),
           apiClient
             .get<{ keywords: KeywordItem[] }>('/api/keywords')
-            .catch(() => ({ data: { keywords: INITIAL_KEYWORDS } } as any)),
+            .catch(() => ({ keywords: [] })),
         ])
         setRestaurants(restRes.restaurants || [])
         setAllItems(itemRes.items || [])

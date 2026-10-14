@@ -1,63 +1,28 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { supabase } from '@/lib/supabase'
-import fs from 'fs'
-import path from 'path'
 
-import { DEFAULT_KEYWORDS } from '@/utils/keywords-data'
-
-const LOCAL_STORE_PATH = path.join(process.cwd(), 'src', 'data', 'trending-keywords.json')
-
-function getLocalKeywords() {
-  try {
-    if (fs.existsSync(LOCAL_STORE_PATH)) {
-      const data = fs.readFileSync(LOCAL_STORE_PATH, 'utf8')
-      const parsed = JSON.parse(data)
-      if (Array.isArray(parsed) && parsed.length > 0) {
-        return parsed
-      }
-    }
-  } catch (e) {
-    console.error('Error reading local keywords:', e)
-  }
-  return DEFAULT_KEYWORDS
-}
-
-function saveLocalKeywords(keywords: any[]) {
-  try {
-    const dir = path.dirname(LOCAL_STORE_PATH)
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true })
-    }
-    fs.writeFileSync(LOCAL_STORE_PATH, JSON.stringify(keywords, null, 2), 'utf8')
-  } catch (e) {
-    console.error('Error writing local keywords:', e)
-  }
-}
-
-// GET /api/keywords - Fetch all trending keywords
+// GET /api/keywords - Fetch all trending keywords dynamically from Supabase
 export async function GET() {
   try {
-    // 1. Try Supabase first
     const { data, error } = await supabase
       .from('TrendingKeyword')
       .select('*')
       .eq('isTrending', true)
       .order('sortOrder', { ascending: true })
 
-    if (!error && data && data.length > 0) {
-      return NextResponse.json({ keywords: data })
+    if (error) {
+      console.error('Supabase TrendingKeyword error:', error)
+      return NextResponse.json({ error: error.message, keywords: [] }, { status: 500 })
     }
 
-    // 2. If table doesn't exist yet or is empty, fallback to local seeded collection
-    const localKeywords = getLocalKeywords()
-    return NextResponse.json({ keywords: localKeywords })
+    return NextResponse.json({ keywords: data || [] })
   } catch (err: any) {
-    const localKeywords = getLocalKeywords()
-    return NextResponse.json({ keywords: localKeywords })
+    console.error('Error fetching keywords:', err)
+    return NextResponse.json({ error: err?.message || 'Server error', keywords: [] }, { status: 500 })
   }
 }
 
-// POST /api/keywords - Admin add new keyword to collection
+// POST /api/keywords - Add new keyword to Supabase TrendingKeyword table
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
@@ -69,54 +34,37 @@ export async function POST(req: NextRequest) {
 
     const trimmedKeyword = keyword.trim()
 
-    // 1. Try inserting into Supabase
-    try {
-      const { data, error } = await supabase
-        .from('TrendingKeyword')
-        .insert({
-          keyword: trimmedKeyword,
-          category,
-          sortOrder,
-          isTrending: true,
-        })
-        .select()
-        .maybeSingle()
+    const { data, error } = await supabase
+      .from('TrendingKeyword')
+      .insert({
+        keyword: trimmedKeyword,
+        category,
+        sortOrder,
+        isTrending: true,
+      })
+      .select()
+      .maybeSingle()
 
-      if (!error && data) {
-        return NextResponse.json({ keyword: data, message: 'Keyword added successfully' })
+    if (error) {
+      // Check for unique conflict
+      if (error.code === '23505') {
+        const { data: existing } = await supabase
+          .from('TrendingKeyword')
+          .select('*')
+          .eq('keyword', trimmedKeyword)
+          .maybeSingle()
+        return NextResponse.json({ keyword: existing, message: 'Keyword already exists' })
       }
-    } catch {
-      // Continue to local fallback
+      return NextResponse.json({ error: error.message }, { status: 400 })
     }
 
-    // 2. Update local collection
-    const local = getLocalKeywords()
-    const existing = local.find((k: any) => k.keyword.toLowerCase() === trimmedKeyword.toLowerCase())
-    if (existing) {
-      return NextResponse.json({ keyword: existing, message: 'Keyword already exists' })
-    }
-
-    const newKeyword = {
-      id: String(Date.now()),
-      keyword: trimmedKeyword,
-      category,
-      sortOrder: sortOrder || local.length + 1,
-      isTrending: true,
-      createdAt: new Date().toISOString(),
-    }
-    local.push(newKeyword)
-    saveLocalKeywords(local)
-
-    return NextResponse.json({
-      keyword: newKeyword,
-      message: 'Keyword added to collection successfully',
-    })
+    return NextResponse.json({ keyword: data, message: 'Keyword added successfully to Supabase' })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })
   }
 }
 
-// DELETE /api/keywords - Admin remove keyword from collection
+// DELETE /api/keywords - Remove keyword from Supabase TrendingKeyword table
 export async function DELETE(req: NextRequest) {
   try {
     const { searchParams } = new URL(req.url)
@@ -124,30 +72,23 @@ export async function DELETE(req: NextRequest) {
     const keyword = searchParams.get('keyword')
 
     if (!id && !keyword) {
-      return NextResponse.json({ error: 'ID or keyword required' }, { status: 400 })
+      return NextResponse.json({ error: 'ID or keyword is required' }, { status: 400 })
     }
 
-    // Try Supabase delete
-    try {
-      if (id) {
-        await supabase.from('TrendingKeyword').delete().eq('id', id)
-      } else if (keyword) {
-        await supabase.from('TrendingKeyword').delete().eq('keyword', keyword)
-      }
-    } catch {
-      // Ignore Supabase error if table doesn't exist
+    let query = supabase.from('TrendingKeyword').delete()
+    if (id) {
+      query = query.eq('id', id)
+    } else if (keyword) {
+      query = query.eq('keyword', keyword)
     }
 
-    // Update local store
-    let local = getLocalKeywords()
-    local = local.filter((k: any) => {
-      if (id && k.id === id) return false
-      if (keyword && k.keyword.toLowerCase() === keyword.toLowerCase()) return false
-      return true
-    })
-    saveLocalKeywords(local)
+    const { error } = await query
 
-    return NextResponse.json({ success: true, message: 'Keyword removed successfully' })
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 400 })
+    }
+
+    return NextResponse.json({ success: true, message: 'Keyword removed successfully from Supabase' })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })
   }

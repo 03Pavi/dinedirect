@@ -1,6 +1,7 @@
 -- ==============================================================================
 -- DineIn Consolidated Pending Migrations: TrendingKeyword + QRCode
 -- Target Supabase Project: hloeorcjstobxesflamk
+-- Paste this script directly into Supabase Dashboard -> SQL Editor and click RUN
 -- ==============================================================================
 
 -- 1. Enable Required Extensions
@@ -39,6 +40,8 @@ DO $$ BEGIN
         CREATE POLICY "Allow delete trending keywords" ON "TrendingKeyword" FOR DELETE USING (true);
     END IF;
 END $$;
+
+GRANT ALL ON "TrendingKeyword" TO anon, authenticated, service_role;
 
 -- Seed Initial Trending Keywords
 INSERT INTO "TrendingKeyword" ("keyword", "category", "sortOrder")
@@ -89,3 +92,5 @@ DO $$ BEGIN
         CREATE POLICY "Allow delete qrcodes" ON "QRCode" FOR DELETE USING (true);
     END IF;
 END $$;
+
+GRANT ALL ON "QRCode" TO anon, authenticated, service_role;

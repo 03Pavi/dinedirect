@@ -25,17 +25,20 @@ CREATE INDEX IF NOT EXISTS "idx_qrcode_code" ON "QRCode"("code");
 ALTER TABLE "QRCode" ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read access (customers scanning QR code)
-CREATE POLICY "Public can view qrcodes" ON "QRCode"
-    FOR SELECT USING (true);
+DO $$ BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'QRCode' AND policyname = 'Public can view qrcodes') THEN
+        CREATE POLICY "Public can view qrcodes" ON "QRCode" FOR SELECT USING (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'QRCode' AND policyname = 'Allow insert qrcodes') THEN
+        CREATE POLICY "Allow insert qrcodes" ON "QRCode" FOR INSERT WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'QRCode' AND policyname = 'Allow update qrcodes') THEN
+        CREATE POLICY "Allow update qrcodes" ON "QRCode" FOR UPDATE USING (true) WITH CHECK (true);
+    END IF;
+    IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE tablename = 'QRCode' AND policyname = 'Allow delete qrcodes') THEN
+        CREATE POLICY "Allow delete qrcodes" ON "QRCode" FOR DELETE USING (true);
+    END IF;
+END $$;
 
--- Allow inserting QR codes
-CREATE POLICY "Allow insert qrcodes" ON "QRCode"
-    FOR INSERT WITH CHECK (true);
-
--- Allow updating QR codes (e.g. scansCount increment)
-CREATE POLICY "Allow update qrcodes" ON "QRCode"
-    FOR UPDATE USING (true) WITH CHECK (true);
-
--- Allow deleting QR codes
-CREATE POLICY "Allow delete qrcodes" ON "QRCode"
-    FOR DELETE USING (true);
+-- Expose to Data API roles
+GRANT ALL ON "QRCode" TO anon, authenticated, service_role;
