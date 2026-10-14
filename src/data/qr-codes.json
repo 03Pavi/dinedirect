@@ -1,28 +1,43 @@
 {
   "9c1a40f8-e119-4f1d-a758-701037fb45d1": [
     {
-      "id": "qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-4",
+      "id": "qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-menu",
       "restaurantId": "9c1a40f8-e119-4f1d-a758-701037fb45d1",
-      "tableNumber": "Table 4",
-      "label": "Outdoor Terrace - Table 4",
-      "code": "DINE-9C1A-T4",
-      "url": "http://localhost:3000/menu?restaurantId=9c1a40f8-e119-4f1d-a758-701037fb45d1&table=Table%204&qrId=qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-4",
-      "color": "#059669",
-      "scansCount": 37,
-      "createdAt": "2026-10-05T16:49:48.662Z",
-      "lastScannedAt": "2026-10-13T04:49:48.662Z"
+      "tableNumber": "Menu",
+      "label": "Swaad Ghar Ka — Full Menu QR",
+      "code": "DINE-9C1A-MENU",
+      "url": "http://localhost:3000/home?restaurantId=9c1a40f8-e119-4f1d-a758-701037fb45d1&table=Menu&qrId=qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-menu",
+      "color": "#ea580c",
+      "scansCount": 0,
+      "qrType": "RESTAURANT",
+      "createdAt": "2026-10-14T12:00:00.000Z",
+      "lastScannedAt": null
     },
     {
-      "id": "qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-5",
+      "id": "qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-t1",
       "restaurantId": "9c1a40f8-e119-4f1d-a758-701037fb45d1",
-      "tableNumber": "Counter",
-      "label": "Express Pickup / Takeaway",
-      "code": "DINE-9C1A-T5",
-      "url": "http://localhost:3000/menu?restaurantId=9c1a40f8-e119-4f1d-a758-701037fb45d1&table=Counter&qrId=qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-5",
-      "color": "#4338ca",
-      "scansCount": 88,
-      "createdAt": "2026-10-03T16:49:48.662Z",
-      "lastScannedAt": "2026-10-13T01:49:48.662Z"
+      "tableNumber": "Table 1",
+      "label": "Main Dining Hall - Table 1",
+      "code": "DINE-9C1A-T1",
+      "url": "http://localhost:3000/home?restaurantId=9c1a40f8-e119-4f1d-a758-701037fb45d1&table=Table%201&qrId=qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-t1",
+      "color": "#ea580c",
+      "scansCount": 0,
+      "qrType": "TABLE",
+      "createdAt": "2026-10-14T12:00:00.000Z",
+      "lastScannedAt": null
+    },
+    {
+      "id": "qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-t2",
+      "restaurantId": "9c1a40f8-e119-4f1d-a758-701037fb45d1",
+      "tableNumber": "Table 2",
+      "label": "Main Dining Hall - Table 2",
+      "code": "DINE-9C1A-T2",
+      "url": "http://localhost:3000/home?restaurantId=9c1a40f8-e119-4f1d-a758-701037fb45d1&table=Table%202&qrId=qr-9c1a40f8-e119-4f1d-a758-701037fb45d1-t2",
+      "color": "#0f172a",
+      "scansCount": 0,
+      "qrType": "TABLE",
+      "createdAt": "2026-10-14T12:00:00.000Z",
+      "lastScannedAt": null
     }
   ]
 }

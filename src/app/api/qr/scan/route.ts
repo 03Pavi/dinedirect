@@ -10,7 +10,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing qrId' }, { status: 400 })
     }
 
-    const result = recordQRScan(qrId)
+    const result = await recordQRScan(qrId)
     return NextResponse.json(result)
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })

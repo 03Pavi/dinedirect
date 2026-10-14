@@ -60,13 +60,15 @@ export interface CartItem {
   name: string
   price: number
   quantity: number
-  isVeg: boolean
+  isVeg?: boolean
   imageUrl?: string | null
 }
 
 export interface CartState {
   restaurantId: string | null
   restaurantName?: string | null
+  tableNumber?: string | null
+  qrId?: string | null
   items: CartItem[]
   subtotal: number
   deliveryFee: number

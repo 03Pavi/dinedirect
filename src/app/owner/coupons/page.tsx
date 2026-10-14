@@ -8,7 +8,6 @@ import {
   Container,
   Typography,
   Button,
-  Grid,
   Card,
   Chip,
   IconButton,
@@ -263,103 +262,95 @@ export default function OwnerCouponsPage() {
         </Box>
 
         {/* Stats Grid */}
-        <Grid container spacing={2.5} sx={{ mb: 4 }}>
-          <Grid item xs={6} sm={3}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2.5,
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
-                bgcolor: '#ffffff',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                <Box sx={{ p: 1, borderRadius: '10px', bgcolor: '#fff7ed', color: '#ea580c' }}>
-                  <LocalOfferIcon fontSize="small" />
-                </Box>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-                  Active Offers
-                </Typography>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 2.5, mb: 4 }}>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+              bgcolor: '#ffffff',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+              <Box sx={{ p: 1, borderRadius: '10px', bgcolor: '#fff7ed', color: '#ea580c' }}>
+                <LocalOfferIcon fontSize="small" />
               </Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
-                {activeCouponsCount} <Typography component="span" variant="caption" sx={{ color: '#94a3b8' }}>/ {coupons.length}</Typography>
+              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
+                Active Offers
               </Typography>
-            </Paper>
-          </Grid>
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
+              {activeCouponsCount} <Typography component="span" variant="caption" sx={{ color: '#94a3b8' }}>/ {coupons.length}</Typography>
+            </Typography>
+          </Paper>
 
-          <Grid item xs={6} sm={3}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2.5,
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
-                bgcolor: '#ffffff',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                <Box sx={{ p: 1, borderRadius: '10px', bgcolor: '#f0fdf4', color: '#16a34a' }}>
-                  <TrendingUpIcon fontSize="small" />
-                </Box>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-                  Total Redeemed
-                </Typography>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+              bgcolor: '#ffffff',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+              <Box sx={{ p: 1, borderRadius: '10px', bgcolor: '#f0fdf4', color: '#16a34a' }}>
+                <TrendingUpIcon fontSize="small" />
               </Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
-                {totalRedemptions} times
+              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
+                Total Redeemed
               </Typography>
-            </Paper>
-          </Grid>
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
+              {totalRedemptions} times
+            </Typography>
+          </Paper>
 
-          <Grid item xs={6} sm={3}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2.5,
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
-                bgcolor: '#ffffff',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                <Box sx={{ p: 1, borderRadius: '10px', bgcolor: '#eef2ff', color: '#4338ca' }}>
-                  <PeopleAltOutlinedIcon fontSize="small" />
-                </Box>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-                  Customer Savings
-                </Typography>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+              bgcolor: '#ffffff',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+              <Box sx={{ p: 1, borderRadius: '10px', bgcolor: '#eef2ff', color: '#4338ca' }}>
+                <PeopleAltOutlinedIcon fontSize="small" />
               </Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
-                ₹{totalSavings.toLocaleString('en-IN')}
+              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
+                Customer Savings
               </Typography>
-            </Paper>
-          </Grid>
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
+              ₹{totalSavings.toLocaleString('en-IN')}
+            </Typography>
+          </Paper>
 
-          <Grid item xs={6} sm={3}>
-            <Paper
-              elevation={0}
-              sx={{
-                p: 2.5,
-                borderRadius: '16px',
-                border: '1px solid #e2e8f0',
-                bgcolor: '#ffffff',
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                <Box sx={{ p: 1, borderRadius: '10px', bgcolor: '#fdf2f8', color: '#db2777' }}>
-                  <StorefrontIcon fontSize="small" />
-                </Box>
-                <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
-                  Avg. Deal Size
-                </Typography>
+          <Paper
+            elevation={0}
+            sx={{
+              p: 2.5,
+              borderRadius: '16px',
+              border: '1px solid #e2e8f0',
+              bgcolor: '#ffffff',
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+              <Box sx={{ p: 1, borderRadius: '10px', bgcolor: '#fdf2f8', color: '#db2777' }}>
+                <StorefrontIcon fontSize="small" />
               </Box>
-              <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
-                20% - 25%
+              <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
+                Avg. Deal Size
               </Typography>
-            </Paper>
-          </Grid>
-        </Grid>
+            </Box>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a' }}>
+              20% - 25%
+            </Typography>
+          </Paper>
+        </Box>
 
         {/* Coupon Cards Grid */}
         {loading ? (
@@ -408,13 +399,13 @@ export default function OwnerCouponsPage() {
             </Button>
           </Paper>
         ) : (
-          <Grid container spacing={3}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
             {coupons.map((coupon) => {
               const isPercent = coupon.discountType === 'PERCENTAGE'
 
               return (
-                <Grid item xs={12} sm={6} md={4} key={coupon.id}>
-                  <Card
+                <Card
+                  key={coupon.id}
                     elevation={0}
                     sx={{
                       borderRadius: '20px',
@@ -560,10 +551,9 @@ export default function OwnerCouponsPage() {
                       </Box>
                     </Box>
                   </Card>
-                </Grid>
               )
             })}
-          </Grid>
+          </Box>
         )}
       </Container>
 

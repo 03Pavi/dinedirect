@@ -9,7 +9,6 @@ import {
   Container,
   Typography,
   Button,
-  Grid,
   Card,
   CardContent,
   Chip,
@@ -226,47 +225,46 @@ export default function HomePage() {
 
       {/* Features Section */}
       <Container maxWidth="lg" sx={{ py: { xs: 6, md: 10 } }}>
-        <Grid container spacing={4}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 4 }}>
           {features.map((feature, idx) => (
-            <Grid item xs={12} md={4} key={idx}>
-              <Card
-                sx={{
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  p: 2,
-                  '&:hover': {
-                    transform: 'translateY(-4px)',
-                    boxShadow: '0 12px 32px rgba(0, 0, 0, 0.08)',
-                  },
-                }}
-              >
-                <CardContent sx={{ flexGrow: 1 }}>
-                  <Box
-                    sx={{
-                      width: 60,
-                      height: 60,
-                      borderRadius: 3,
-                      backgroundColor: 'rgba(232, 93, 4, 0.08)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 3,
-                    }}
-                  >
-                    {feature.icon}
-                  </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-                    {feature.title}
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#6C757D', lineHeight: 1.7 }}>
-                    {feature.description}
-                  </Typography>
-                </CardContent>
-              </Card>
-            </Grid>
+            <Card
+              key={idx}
+              sx={{
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                p: 2,
+                '&:hover': {
+                  transform: 'translateY(-4px)',
+                  boxShadow: '0 12px 32px rgba(0, 0, 0, 0.08)',
+                },
+              }}
+            >
+              <CardContent sx={{ flexGrow: 1 }}>
+                <Box
+                  sx={{
+                    width: 60,
+                    height: 60,
+                    borderRadius: 3,
+                    backgroundColor: 'rgba(232, 93, 4, 0.08)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 3,
+                  }}
+                >
+                  {feature.icon}
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
+                  {feature.title}
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#6C757D', lineHeight: 1.7 }}>
+                  {feature.description}
+                </Typography>
+              </CardContent>
+            </Card>
           ))}
-        </Grid>
+        </Box>
       </Container>
 
       {/* Footer */}

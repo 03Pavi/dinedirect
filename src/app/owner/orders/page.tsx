@@ -1,18 +1,18 @@
 'use client'
 
-import React, { useEffect, useState, useMemo, useRef } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useEffect, useState, useMemo, useRef, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import {
   Box,
   Container,
   Typography,
   Button,
-  Grid,
   TextField,
   InputAdornment,
   Skeleton,
   Snackbar,
   Alert,
+  CircularProgress,
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
 import ViewWeekIcon from '@mui/icons-material/ViewWeek'
@@ -52,8 +52,10 @@ import {
   OrderCounts,
 } from '@/components/owner/orders'
 
-export default function OwnerOrdersPage() {
+function OwnerOrdersContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const openOrderId = searchParams.get('openOrder')
   const dispatch = useAppDispatch()
 
   const isAuthenticated = useAppSelector(selectIsAuthenticated)
@@ -74,6 +76,18 @@ export default function OwnerOrdersPage() {
 
   // Selected Order for KOT / Receipt Modal
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+
+  // Auto-open modal when navigating from notification
+  useEffect(() => {
+    if (openOrderId && orders.length > 0) {
+      const match = orders.find(
+        (o) => o.id === openOrderId || o.id.toLowerCase().endsWith(openOrderId.toLowerCase())
+      )
+      if (match) {
+        setSelectedOrder(match)
+      }
+    }
+  }, [openOrderId, orders])
 
   // Status Action Menu
   const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null)
@@ -283,13 +297,11 @@ export default function OwnerOrdersPage() {
         <Navbar />
         <Container maxWidth="xl" sx={{ py: 4 }}>
           <Skeleton variant="rectangular" height={100} sx={{ borderRadius: '12px', mb: 3 }} />
-          <Grid container spacing={2}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2 }}>
             {[1, 2, 3, 4].map((i) => (
-              <Grid item xs={12} sm={6} md={3} key={i}>
-                <Skeleton variant="rectangular" height={320} sx={{ borderRadius: '12px' }} />
-              </Grid>
+              <Skeleton key={i} variant="rectangular" height={320} sx={{ borderRadius: '12px' }} />
             ))}
-          </Grid>
+          </Box>
         </Container>
       </Box>
     )
@@ -511,19 +523,18 @@ export default function OwnerOrdersPage() {
                 </Typography>
               </Box>
             ) : (
-              <Grid container spacing={2.5}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
                 {filteredOrders.map((order) => (
-                  <Grid item xs={12} sm={6} md={4} key={order.id}>
-                    <OrderCard
-                      order={order}
-                      onUpdateStatus={handleUpdateStatus}
-                      onOpenMenu={handleOpenMenu}
-                      onViewDetails={(o) => setSelectedOrder(o)}
-                      onCopyOrderId={handleCopyOrderId}
-                    />
-                  </Grid>
+                  <OrderCard
+                    key={order.id}
+                    order={order}
+                    onUpdateStatus={handleUpdateStatus}
+                    onOpenMenu={handleOpenMenu}
+                    onViewDetails={(o) => setSelectedOrder(o)}
+                    onCopyOrderId={handleCopyOrderId}
+                  />
                 ))}
-              </Grid>
+              </Box>
             )}
           </Box>
         )}
@@ -541,6 +552,7 @@ export default function OwnerOrdersPage() {
       <OrderTicketDialog
         order={selectedOrder}
         onClose={() => setSelectedOrder(null)}
+        onUpdateStatus={handleUpdateStatus}
       />
 
       {/* Feedback Snackbar */}
@@ -559,5 +571,19 @@ export default function OwnerOrdersPage() {
         </Alert>
       </Snackbar>
     </Box>
+  )
+}
+
+export default function OwnerOrdersPage() {
+  return (
+    <Suspense
+      fallback={
+        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CircularProgress sx={{ color: '#ea580c' }} />
+        </Box>
+      }
+    >
+      <OwnerOrdersContent />
+    </Suspense>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useState, useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import {
   Box,
@@ -39,13 +39,22 @@ import RestaurantIcon from '@mui/icons-material/Restaurant'
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { DeliveryAddressMap } from '@/components/customer/delivery-address-map'
-import { updateQuantity, removeItem, clearCart } from '@/store/slices/cart-slice'
+import { updateQuantity, removeItem, clearCart, setCartTable } from '@/store/slices/cart-slice'
 import { selectCurrentUser, selectIsAuthenticated } from '@/store/selectors/auth-selectors'
 import { apiClient } from '@/utils/api-client'
 import { formatPrice } from '@/utils/format-price'
 
-export default function CheckoutPage() {
+interface TableOption {
+  id: string
+  tableNumber: string
+  label: string
+}
+
+function CheckoutContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const tableParam = searchParams.get('table')
+  const qrIdParam = searchParams.get('qrId')
   const dispatch = useAppDispatch()
 
   const cart = useAppSelector((state) => state.cart)
@@ -54,9 +63,54 @@ export default function CheckoutPage() {
 
   // Order Details State
   const [orderType, setOrderType] = useState<'DINE_IN' | 'TAKEAWAY' | 'DELIVERY'>('DINE_IN')
-  const [tableNumber, setTableNumber] = useState('Table 1')
+  const [tableNumber, setTableNumber] = useState(tableParam || cart.tableNumber || '')
+  const [availableTables, setAvailableTables] = useState<TableOption[]>([])
+  const [loadingTables, setLoadingTables] = useState(false)
   const [customerName, setCustomerName] = useState('')
   const [customerPhone, setCustomerPhone] = useState('')
+
+  // Sync URL table params if provided
+  useEffect(() => {
+    if (tableParam) {
+      setTableNumber(tableParam)
+      dispatch(setCartTable({ tableNumber: tableParam, qrId: qrIdParam || undefined }))
+    } else if (cart.tableNumber) {
+      setTableNumber(cart.tableNumber)
+    }
+  }, [tableParam, qrIdParam, cart.tableNumber, dispatch])
+
+  // Fetch dynamic tables from DB for current restaurant
+  useEffect(() => {
+    if (!cart.restaurantId) return
+    let active = true
+    setLoadingTables(true)
+    apiClient
+      .get<{ tables: TableOption[] }>(`/api/qr/tables?restaurantId=${encodeURIComponent(cart.restaurantId)}`)
+      .then((res) => {
+        if (active && res?.tables) {
+          setAvailableTables(res.tables)
+          if (!tableNumber && !cart.tableNumber && res.tables.length > 0) {
+            setTableNumber(res.tables[0].tableNumber)
+            dispatch(setCartTable({ tableNumber: res.tables[0].tableNumber }))
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load restaurant tables from DB', err)
+      })
+      .finally(() => {
+        if (active) setLoadingTables(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [cart.restaurantId, cart.tableNumber, tableNumber, dispatch])
+
+  const handleSelectTable = (tbl: string) => {
+    setTableNumber(tbl)
+    dispatch(setCartTable({ tableNumber: tbl }))
+  }
   const [deliveryAddress, setDeliveryAddress] = useState('')
   const [kitchenNote, setKitchenNote] = useState('')
   const [paymentMode, setPaymentMode] = useState<'CASH' | 'UPI' | 'CARD'>('CASH')
@@ -485,33 +539,49 @@ export default function CheckoutPage() {
               {/* Dine-In Table Selection */}
               {orderType === 'DINE_IN' && (
                 <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', mb: 1 }}>
-                    Select or Enter Table Number
-                  </Typography>
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-                    {['Table 1', 'Table 2', 'Table 3', 'Table 4', 'Table 5', 'Table 6'].map((tbl) => (
-                      <Chip
-                        key={tbl}
-                        label={tbl}
-                        clickable
-                        onClick={() => setTableNumber(tbl)}
-                        sx={{
-                          fontWeight: 700,
-                          bgcolor: tableNumber === tbl ? '#ea580c' : '#ffffff',
-                          color: tableNumber === tbl ? '#ffffff' : '#334155',
-                          border: '1px solid',
-                          borderColor: tableNumber === tbl ? '#ea580c' : '#cbd5e1',
-                          '&:hover': { bgcolor: tableNumber === tbl ? '#c2410c' : '#f1f5f9' },
-                        }}
-                      />
-                    ))}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155' }}>
+                      Select or Enter Table Number
+                    </Typography>
+                    {loadingTables && (
+                      <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                        Loading tables...
+                      </Typography>
+                    )}
                   </Box>
+
+                  {availableTables.length > 0 && (
+                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
+                      {availableTables.map((tbl) => {
+                        const isSelected = tableNumber.toLowerCase() === tbl.tableNumber.toLowerCase()
+                        return (
+                          <Chip
+                            key={tbl.id}
+                            label={tbl.tableNumber}
+                            clickable
+                            onClick={() => handleSelectTable(tbl.tableNumber)}
+                            sx={{
+                              fontWeight: 700,
+                              bgcolor: isSelected ? '#ea580c' : '#ffffff',
+                              color: isSelected ? '#ffffff' : '#334155',
+                              border: '1px solid',
+                              borderColor: isSelected ? '#ea580c' : '#cbd5e1',
+                              '&:hover': {
+                                bgcolor: isSelected ? '#c2410c' : '#f1f5f9',
+                              },
+                            }}
+                          />
+                        )
+                      })}
+                    </Box>
+                  )}
+
                   <TextField
                     fullWidth
                     size="small"
                     value={tableNumber}
-                    onChange={(e) => setTableNumber(e.target.value)}
-                    placeholder="e.g. Table 12 or Rooftop Table 3"
+                    onChange={(e) => handleSelectTable(e.target.value)}
+                    placeholder="e.g. Table 4 or Table A"
                     sx={{ bgcolor: '#ffffff' }}
                   />
                 </Box>
@@ -947,5 +1017,19 @@ export default function CheckoutPage() {
         </Box>
       </Container>
     </Box>
+  )
+}
+
+export default function CheckoutPage() {
+  return (
+    <Suspense
+      fallback={
+        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <CircularProgress sx={{ color: '#ea580c' }} />
+        </Box>
+      }
+    >
+      <CheckoutContent />
+    </Suspense>
   )
 }

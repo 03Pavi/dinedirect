@@ -25,7 +25,7 @@ export async function GET(req: NextRequest) {
     }
 
     const origin = req.nextUrl.origin || 'http://localhost:3000'
-    const qrs = getRestaurantQRCodes(restaurant.id, restaurant.name, origin)
+    const qrs = await getRestaurantQRCodes(restaurant.id, origin)
 
     return NextResponse.json({ success: true, restaurant, qrs })
   } catch (err: any) {
@@ -51,18 +51,19 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { tableNumber, label, color } = body
+    const { tableNumber, label, color, qrType } = body
 
     if (!tableNumber || typeof tableNumber !== 'string') {
       return NextResponse.json({ error: 'Table number or label is required' }, { status: 400 })
     }
 
     const origin = req.nextUrl.origin || 'http://localhost:3000'
-    const qr = createRestaurantQRCode({
+    const qr = await createRestaurantQRCode({
       restaurantId: restaurant.id,
       tableNumber: tableNumber.trim(),
       label: label?.trim(),
       color: color || '#ea580c',
+      qrType: qrType || 'TABLE',
       host: origin,
     })
 
@@ -96,7 +97,7 @@ export async function DELETE(req: NextRequest) {
       return NextResponse.json({ error: 'QR Code ID is required' }, { status: 400 })
     }
 
-    const deleted = deleteRestaurantQRCode(restaurant.id, qrId)
+    const deleted = await deleteRestaurantQRCode(restaurant.id, qrId)
     return NextResponse.json({ success: deleted })
   } catch (err: any) {
     return NextResponse.json({ error: err?.message || 'Server error' }, { status: 500 })

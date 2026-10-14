@@ -7,7 +7,6 @@ import {
   Box,
   Drawer,
   Typography,
-  Grid,
   Button,
   Stack,
   Badge,
@@ -135,133 +134,129 @@ function MoreContent() {
             </Typography>
           </Box>
 
-          <Grid container spacing={3} sx={{ mb: 4 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 3, mb: 4 }}>
             {/* 1. Partner Onboarding Card */}
-            <Grid item xs={12} sm={6}>
-              <Card
-                elevation={0}
-                sx={{
-                  p: 3,
-                  borderRadius: '20px',
-                  border: '1.5px solid #e2e8f0',
-                  bgcolor: '#ffffff',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    borderColor: '#ea580c',
-                    boxShadow: '0 8px 24px -6px rgba(234, 88, 12, 0.15)',
-                  },
-                }}
-              >
-                <Box>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: '12px',
-                      bgcolor: '#fff7ed',
-                      color: '#ea580c',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 2,
-                    }}
-                  >
-                    <StorefrontIcon />
-                  </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
-                    Partner With DineDirect
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#64748b', mb: 2, lineHeight: 1.5 }}>
-                    Grow your food business, receive contactless dine-in & delivery orders, and print customized table QR codes.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="outlined"
-                  component={Link}
-                  href="/register"
-                  endIcon={<ArrowForwardIcon />}
+            <Card
+              elevation={0}
+              sx={{
+                p: 3,
+                borderRadius: '20px',
+                border: '1.5px solid #e2e8f0',
+                bgcolor: '#ffffff',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  borderColor: '#ea580c',
+                  boxShadow: '0 8px 24px -6px rgba(234, 88, 12, 0.15)',
+                },
+              }}
+            >
+              <Box>
+                <Box
                   sx={{
-                    borderRadius: '10px',
-                    fontWeight: 700,
-                    borderColor: '#ea580c',
+                    width: 48,
+                    height: 48,
+                    borderRadius: '12px',
+                    bgcolor: '#fff7ed',
                     color: '#ea580c',
-                    textTransform: 'none',
-                    alignSelf: 'flex-start',
-                    '&:hover': { bgcolor: '#fff7ed', borderColor: '#c2410c' },
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2,
                   }}
                 >
-                  Register Restaurant
-                </Button>
-              </Card>
-            </Grid>
+                  <StorefrontIcon />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
+                  Partner With DineDirect
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b', mb: 2, lineHeight: 1.5 }}>
+                  Grow your food business, receive contactless dine-in & delivery orders, and print customized table QR codes.
+                </Typography>
+              </Box>
+              <Button
+                variant="outlined"
+                component={Link}
+                href="/register"
+                endIcon={<ArrowForwardIcon />}
+                sx={{
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  borderColor: '#ea580c',
+                  color: '#ea580c',
+                  textTransform: 'none',
+                  alignSelf: 'flex-start',
+                  '&:hover': { bgcolor: '#fff7ed', borderColor: '#c2410c' },
+                }}
+              >
+                Register Restaurant
+              </Button>
+            </Card>
 
             {/* 2. QR Dine-in Guide Card */}
-            <Grid item xs={12} sm={6}>
-              <Card
-                elevation={0}
-                sx={{
-                  p: 3,
-                  borderRadius: '20px',
-                  border: '1.5px solid #e2e8f0',
-                  bgcolor: '#ffffff',
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  justifyContent: 'space-between',
-                  transition: 'all 0.2s ease',
-                  '&:hover': {
-                    borderColor: '#0284c7',
-                    boxShadow: '0 8px 24px -6px rgba(2, 132, 199, 0.15)',
-                  },
-                }}
-              >
-                <Box>
-                  <Box
-                    sx={{
-                      width: 48,
-                      height: 48,
-                      borderRadius: '12px',
-                      bgcolor: '#f0f9ff',
-                      color: '#0284c7',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      mb: 2,
-                    }}
-                  >
-                    <QrCode2Icon />
-                  </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
-                    Contactless Dine-In QR
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: '#64748b', mb: 2, lineHeight: 1.5 }}>
-                    No more waiting for physical menus or server bills. Simply scan your table QR to browse dishes, add customized notes, and pay.
-                  </Typography>
-                </Box>
-                <Button
-                  variant="outlined"
-                  component={Link}
-                  href="/home"
-                  endIcon={<ArrowForwardIcon />}
+            <Card
+              elevation={0}
+              sx={{
+                p: 3,
+                borderRadius: '20px',
+                border: '1.5px solid #e2e8f0',
+                bgcolor: '#ffffff',
+                height: '100%',
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'space-between',
+                transition: 'all 0.2s ease',
+                '&:hover': {
+                  borderColor: '#0284c7',
+                  boxShadow: '0 8px 24px -6px rgba(2, 132, 199, 0.15)',
+                },
+              }}
+            >
+              <Box>
+                <Box
                   sx={{
-                    borderRadius: '10px',
-                    fontWeight: 700,
-                    borderColor: '#0284c7',
+                    width: 48,
+                    height: 48,
+                    borderRadius: '12px',
+                    bgcolor: '#f0f9ff',
                     color: '#0284c7',
-                    textTransform: 'none',
-                    alignSelf: 'flex-start',
-                    '&:hover': { bgcolor: '#f0f9ff' },
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    mb: 2,
                   }}
                 >
-                  Explore Restaurants
-                </Button>
-              </Card>
-            </Grid>
-          </Grid>
+                  <QrCode2Icon />
+                </Box>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
+                  Contactless Dine-In QR
+                </Typography>
+                <Typography variant="body2" sx={{ color: '#64748b', mb: 2, lineHeight: 1.5 }}>
+                  No more waiting for physical menus or server bills. Simply scan your table QR to browse dishes, add customized notes, and pay.
+                </Typography>
+              </Box>
+              <Button
+                variant="outlined"
+                component={Link}
+                href="/home"
+                endIcon={<ArrowForwardIcon />}
+                sx={{
+                  borderRadius: '10px',
+                  fontWeight: 700,
+                  borderColor: '#0284c7',
+                  color: '#0284c7',
+                  textTransform: 'none',
+                  alignSelf: 'flex-start',
+                  '&:hover': { bgcolor: '#f0f9ff' },
+                }}
+              >
+                Explore Restaurants
+              </Button>
+            </Card>
+          </Box>
 
           {/* Frequently Asked Questions */}
           <Box sx={{ mb: 4 }}>

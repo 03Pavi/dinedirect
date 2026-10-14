@@ -13,17 +13,19 @@ import {
   Divider,
 } from '@mui/material'
 import PrintIcon from '@mui/icons-material/Print'
-import { Order } from '@/types/order-types'
+import { Order, OrderStatus } from '@/types/order-types'
 import { STATUS_CONFIGS } from './order-config'
 
 interface OrderTicketDialogProps {
   order: Order | null
   onClose: () => void
+  onUpdateStatus?: (orderId: string, status: OrderStatus) => void
 }
 
-export function OrderTicketDialog({ order, onClose }: OrderTicketDialogProps) {
+export function OrderTicketDialog({ order, onClose, onUpdateStatus }: OrderTicketDialogProps) {
   if (!order) return null
 
+  const isIncoming = order.status === 'PLACED' || order.status === 'ACCEPTED'
   const config = STATUS_CONFIGS[order.status] || STATUS_CONFIGS.PLACED
   const orderTimeFormatted = new Date(order.createdAt).toLocaleTimeString([], {
     hour: '2-digit',
@@ -42,7 +44,7 @@ export function OrderTicketDialog({ order, onClose }: OrderTicketDialogProps) {
       fullWidth
       PaperProps={{
         sx: {
-          borderRadius: '14px',
+          borderRadius: '16px',
           p: 1,
         },
       }}
@@ -151,24 +153,97 @@ export function OrderTicketDialog({ order, onClose }: OrderTicketDialogProps) {
         </Box>
       </DialogContent>
 
-      <DialogActions sx={{ px: 2, py: 1.5, justifyContent: 'space-between' }}>
-        <Button
-          variant="outlined"
-          size="small"
-          startIcon={<PrintIcon />}
-          onClick={() => window.print()}
-          sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700 }}
-        >
-          Print Ticket
-        </Button>
-        <Button
-          variant="contained"
-          size="small"
-          onClick={onClose}
-          sx={{ borderRadius: '8px', bgcolor: '#0f172a', textTransform: 'none', fontWeight: 700 }}
-        >
-          Close
-        </Button>
+      <DialogActions sx={{ px: 2.5, py: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        {isIncoming ? (
+          <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <Box sx={{ display: 'flex', gap: 1.5, width: '100%' }}>
+              <Button
+                variant="outlined"
+                color="error"
+                size="large"
+                onClick={() => {
+                  onUpdateStatus?.(order.id, 'REJECTED')
+                  onClose()
+                }}
+                sx={{
+                  flex: 1,
+                  borderRadius: '12px',
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.9rem',
+                  py: 1.2,
+                  borderColor: '#ef4444',
+                  color: '#ef4444',
+                  '&:hover': { bgcolor: '#fef2f2', borderColor: '#dc2626' },
+                }}
+              >
+                ❌ Out of Stock
+              </Button>
+              <Button
+                variant="contained"
+                size="large"
+                onClick={() => {
+                  onUpdateStatus?.(order.id, 'PREPARING')
+                  onClose()
+                }}
+                sx={{
+                  flex: 2,
+                  borderRadius: '12px',
+                  bgcolor: '#ea580c',
+                  color: '#ffffff',
+                  textTransform: 'none',
+                  fontWeight: 800,
+                  fontSize: '0.95rem',
+                  py: 1.2,
+                  boxShadow: '0 4px 14px rgba(234, 88, 12, 0.35)',
+                  '&:hover': { bgcolor: '#c2410c' },
+                }}
+              >
+                ✅ Confirmed (Send to Kitchen) 🍳
+              </Button>
+            </Box>
+
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%', pt: 0.5 }}>
+              <Button
+                variant="text"
+                size="small"
+                startIcon={<PrintIcon />}
+                onClick={() => window.print()}
+                sx={{ textTransform: 'none', fontWeight: 600, color: '#64748b' }}
+              >
+                Print Ticket
+              </Button>
+              <Button
+                variant="text"
+                size="small"
+                onClick={onClose}
+                sx={{ textTransform: 'none', fontWeight: 700, color: '#64748b' }}
+              >
+                Close
+              </Button>
+            </Box>
+          </Box>
+        ) : (
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}>
+            <Button
+              variant="outlined"
+              size="small"
+              startIcon={<PrintIcon />}
+              onClick={() => window.print()}
+              sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700 }}
+            >
+              Print Ticket
+            </Button>
+            <Button
+              variant="contained"
+              size="small"
+              onClick={onClose}
+              sx={{ borderRadius: '8px', bgcolor: '#0f172a', textTransform: 'none', fontWeight: 700 }}
+            >
+              Close
+            </Button>
+          </Box>
+        )}
       </DialogActions>
     </Dialog>
   )

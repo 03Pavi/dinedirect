@@ -8,7 +8,6 @@ import {
   Typography,
   Card,
   CardContent,
-  Grid,
   Button,
   TextField,
   Stack,
@@ -234,40 +233,36 @@ export function RestaurantSetupWizard({
         <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
           {/* STEP 0: BASIC INFORMATION */}
           {activeStep === 0 && (
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  id="name"
-                  label="Restaurant Name"
-                  placeholder="e.g. Spice Symphony"
-                  {...register('name')}
-                  error={!!errors.name}
-                  helperText={errors.name?.message}
-                  sx={{
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                  }}
-                />
-              </Grid>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                id="name"
+                label="Restaurant Name"
+                placeholder="e.g. Spice Symphony"
+                {...register('name')}
+                error={!!errors.name}
+                helperText={errors.name?.message}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                }}
+              />
 
-              <Grid item xs={12} sm={6}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  id="phone"
-                  label="Contact Phone"
-                  placeholder="10-digit phone number"
-                  {...register('phone')}
-                  error={!!errors.phone}
-                  helperText={errors.phone?.message}
-                  sx={{
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                  }}
-                />
-              </Grid>
+              <TextField
+                fullWidth
+                size="small"
+                id="phone"
+                label="Contact Phone"
+                placeholder="10-digit phone number"
+                {...register('phone')}
+                error={!!errors.phone}
+                helperText={errors.phone?.message}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                }}
+              />
 
-              <Grid item xs={12}>
+              <Box sx={{ gridColumn: { sm: '1 / -1' } }}>
                 <TextField
                   fullWidth
                   size="small"
@@ -283,47 +278,43 @@ export function RestaurantSetupWizard({
                     '& .MuiOutlinedInput-root': { borderRadius: '8px' },
                   }}
                 />
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           )}
 
           {/* STEP 1: LOCATION & CUISINES */}
           {activeStep === 1 && (
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={8}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  id="address"
-                  label="Complete Street Address"
-                  placeholder="Shop 12, High Street Food Plaza"
-                  {...register('address')}
-                  error={!!errors.address}
-                  helperText={errors.address?.message}
-                  sx={{
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                  }}
-                />
-              </Grid>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '2fr 1fr' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                id="address"
+                label="Complete Street Address"
+                placeholder="Shop 12, High Street Food Plaza"
+                {...register('address')}
+                error={!!errors.address}
+                helperText={errors.address?.message}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                }}
+              />
 
-              <Grid item xs={12} sm={4}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  id="city"
-                  label="City"
-                  placeholder="e.g. Mumbai"
-                  {...register('city')}
-                  error={!!errors.city}
-                  helperText={errors.city?.message}
-                  sx={{
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                  }}
-                />
-              </Grid>
+              <TextField
+                fullWidth
+                size="small"
+                id="city"
+                label="City"
+                placeholder="e.g. Mumbai"
+                {...register('city')}
+                error={!!errors.city}
+                helperText={errors.city?.message}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                }}
+              />
 
               {/* Cuisines Selection */}
-              <Grid item xs={12}>
+              <Box sx={{ gridColumn: { sm: '1 / -1' } }}>
                 <Typography variant="caption" sx={{ fontWeight: 700, mb: 1, color: '#334155', display: 'block' }}>
                   CUISINES (SELECT AT LEAST ONE)
                 </Typography>
@@ -358,77 +349,69 @@ export function RestaurantSetupWizard({
                     {errors.cuisine.message}
                   </Typography>
                 )}
-              </Grid>
-            </Grid>
+              </Box>
+            </Box>
           )}
 
           {/* STEP 2: OPERATING HOURS & ORDER RULES */}
           {activeStep === 2 && (
-            <Grid container spacing={2}>
-              <Grid item xs={6} sm={3}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  id="openingTime"
-                  label="Opening Time"
-                  placeholder="09:00"
-                  {...register('openingTime')}
-                  error={!!errors.openingTime}
-                  helperText={errors.openingTime?.message}
-                  sx={{
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                  }}
-                />
-              </Grid>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 2 }}>
+              <TextField
+                fullWidth
+                size="small"
+                id="openingTime"
+                label="Opening Time"
+                placeholder="09:00"
+                {...register('openingTime')}
+                error={!!errors.openingTime}
+                helperText={errors.openingTime?.message}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                }}
+              />
 
-              <Grid item xs={6} sm={3}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  id="closingTime"
-                  label="Closing Time"
-                  placeholder="22:00"
-                  {...register('closingTime')}
-                  error={!!errors.closingTime}
-                  helperText={errors.closingTime?.message}
-                  sx={{
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                  }}
-                />
-              </Grid>
+              <TextField
+                fullWidth
+                size="small"
+                id="closingTime"
+                label="Closing Time"
+                placeholder="22:00"
+                {...register('closingTime')}
+                error={!!errors.closingTime}
+                helperText={errors.closingTime?.message}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                }}
+              />
 
-              <Grid item xs={6} sm={3}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  id="deliveryFee"
-                  label="Delivery Fee (₹)"
-                  type="number"
-                  {...register('deliveryFee', { valueAsNumber: true })}
-                  error={!!errors.deliveryFee}
-                  helperText={errors.deliveryFee?.message}
-                  sx={{
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                  }}
-                />
-              </Grid>
+              <TextField
+                fullWidth
+                size="small"
+                id="deliveryFee"
+                label="Delivery Fee (₹)"
+                type="number"
+                {...register('deliveryFee', { valueAsNumber: true })}
+                error={!!errors.deliveryFee}
+                helperText={errors.deliveryFee?.message}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                }}
+              />
 
-              <Grid item xs={6} sm={3}>
-                <TextField
-                  fullWidth
-                  size="small"
-                  id="minOrder"
-                  label="Min Order (₹)"
-                  type="number"
-                  {...register('minOrder', { valueAsNumber: true })}
-                  error={!!errors.minOrder}
-                  helperText={errors.minOrder?.message}
-                  sx={{
-                    '& .MuiOutlinedInput-root': { borderRadius: '8px' },
-                  }}
-                />
-              </Grid>
-            </Grid>
+              <TextField
+                fullWidth
+                size="small"
+                id="minOrder"
+                label="Min Order (₹)"
+                type="number"
+                {...register('minOrder', { valueAsNumber: true })}
+                error={!!errors.minOrder}
+                helperText={errors.minOrder?.message}
+                sx={{
+                  '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                }}
+              />
+            </Box>
           )}
 
           <Divider sx={{ my: 2.5, borderColor: '#f1f5f9' }} />

@@ -6,7 +6,6 @@ import {
   Box,
   Drawer,
   Typography,
-  Grid,
   Chip,
   Switch,
   FormControlLabel,
@@ -422,34 +421,39 @@ function HomeContent() {
                   </Box>
                   <Skeleton variant="rounded" width={110} height={24} sx={{ borderRadius: '12px' }} />
                 </Box>
-                <Grid container spacing={3}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+                    gap: 3,
+                  }}
+                >
                   {Array.from({ length: 6 }).map((_, idx) => (
-                    <Grid item xs={12} sm={6} md={6} lg={4} key={idx}>
-                      <Card
-                        elevation={0}
-                        sx={{
-                          borderRadius: '16px',
-                          border: '1.5px solid #f1f5f9',
-                          bgcolor: '#ffffff',
-                          overflow: 'hidden',
-                          display: 'flex',
-                          flexDirection: 'column',
-                          height: '100%',
-                        }}
-                      >
-                        <Skeleton variant="rectangular" animation="wave" height={160} sx={{ bgcolor: '#f1f5f9' }} />
-                        <Box sx={{ p: 2 }}>
-                          <Skeleton variant="text" animation="wave" width="65%" height={26} sx={{ mb: 1, borderRadius: '4px' }} />
-                          <Skeleton variant="text" animation="wave" width="40%" height={18} sx={{ mb: 2, borderRadius: '4px' }} />
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px solid #f8fafc' }}>
-                            <Skeleton variant="text" animation="wave" width={80} height={18} sx={{ borderRadius: '4px' }} />
-                            <Skeleton variant="rounded" animation="wave" width={75} height={28} sx={{ borderRadius: '8px' }} />
-                          </Box>
+                    <Card
+                      key={idx}
+                      elevation={0}
+                      sx={{
+                        borderRadius: '16px',
+                        border: '1.5px solid #f1f5f9',
+                        bgcolor: '#ffffff',
+                        overflow: 'hidden',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        height: '100%',
+                      }}
+                    >
+                      <Skeleton variant="rectangular" animation="wave" height={160} sx={{ bgcolor: '#f1f5f9' }} />
+                      <Box sx={{ p: 2 }}>
+                        <Skeleton variant="text" animation="wave" width="65%" height={26} sx={{ mb: 1, borderRadius: '4px' }} />
+                        <Skeleton variant="text" animation="wave" width="40%" height={18} sx={{ mb: 2, borderRadius: '4px' }} />
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1, borderTop: '1px solid #f8fafc' }}>
+                          <Skeleton variant="text" animation="wave" width={80} height={18} sx={{ borderRadius: '4px' }} />
+                          <Skeleton variant="rounded" animation="wave" width={75} height={28} sx={{ borderRadius: '8px' }} />
                         </Box>
-                      </Card>
-                    </Grid>
+                      </Box>
+                    </Card>
                   ))}
-                </Grid>
+                </Box>
               </Box>
             ) : (
               <Box>
@@ -467,35 +471,40 @@ function HomeContent() {
                   </Box>
                   <Skeleton variant="rounded" width={90} height={24} sx={{ borderRadius: '12px' }} />
                 </Box>
-                <Grid container spacing={2.5}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+                    gap: 2.5,
+                  }}
+                >
                   {Array.from({ length: 6 }).map((_, idx) => (
-                    <Grid item xs={12} sm={6} md={6} lg={4} key={idx}>
-                      <Card
-                        elevation={0}
-                        sx={{
-                          borderRadius: '16px',
-                          border: '1.5px solid #f1f5f9',
-                          bgcolor: '#ffffff',
-                          overflow: 'hidden',
-                          p: 2,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          gap: 1.5,
-                        }}
-                      >
-                        <Skeleton variant="rectangular" animation="wave" height={150} sx={{ borderRadius: '12px', bgcolor: '#f1f5f9' }} />
-                        <Box>
-                          <Skeleton variant="text" animation="wave" width="70%" height={24} sx={{ borderRadius: '4px', mb: 0.5 }} />
-                          <Skeleton variant="text" animation="wave" width="45%" height={16} sx={{ borderRadius: '4px', mb: 1.5 }} />
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                            <Skeleton variant="text" animation="wave" width={60} height={26} sx={{ borderRadius: '4px' }} />
-                            <Skeleton variant="rounded" animation="wave" width={80} height={32} sx={{ borderRadius: '20px' }} />
-                          </Box>
+                    <Card
+                      key={idx}
+                      elevation={0}
+                      sx={{
+                        borderRadius: '16px',
+                        border: '1.5px solid #f1f5f9',
+                        bgcolor: '#ffffff',
+                        overflow: 'hidden',
+                        p: 2,
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: 1.5,
+                      }}
+                    >
+                      <Skeleton variant="rectangular" animation="wave" height={150} sx={{ borderRadius: '12px', bgcolor: '#f1f5f9' }} />
+                      <Box>
+                        <Skeleton variant="text" animation="wave" width="70%" height={24} sx={{ borderRadius: '4px', mb: 0.5 }} />
+                        <Skeleton variant="text" animation="wave" width="45%" height={16} sx={{ borderRadius: '4px', mb: 1.5 }} />
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <Skeleton variant="text" animation="wave" width={60} height={26} sx={{ borderRadius: '4px' }} />
+                          <Skeleton variant="rounded" animation="wave" width={80} height={32} sx={{ borderRadius: '20px' }} />
                         </Box>
-                      </Card>
-                    </Grid>
+                      </Box>
+                    </Card>
                   ))}
-                </Grid>
+                </Box>
               </Box>
             )
           ) : viewMode === 'restaurants' ? (
@@ -539,16 +548,21 @@ function HomeContent() {
                   </Typography>
                 </Box>
               ) : (
-                <Grid container spacing={3}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+                    gap: 3,
+                  }}
+                >
                   {filteredRestaurants.map((restaurant) => (
-                    <Grid item xs={12} sm={6} md={6} lg={4} key={restaurant.id}>
-                      <RestaurantCard
-                        restaurant={restaurant}
-                        onExplore={handleSelectRestaurant}
-                      />
-                    </Grid>
+                    <RestaurantCard
+                      key={restaurant.id}
+                      restaurant={restaurant}
+                      onExplore={handleSelectRestaurant}
+                    />
                   ))}
-                </Grid>
+                </Box>
               )}
             </Box>
           ) : (
@@ -592,24 +606,29 @@ function HomeContent() {
                   </Typography>
                 </Box>
               ) : (
-                <Grid container spacing={2.5}>
+                <Box
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+                    gap: 2.5,
+                  }}
+                >
                   {filteredDishes.map((dish) => {
                     const inCart = cart.items.find((i) => i.menuItemId === dish.id)
                     const qty = inCart ? inCart.quantity : 0
 
                     return (
-                      <Grid item xs={12} sm={6} md={6} lg={4} key={dish.id}>
-                        <DishCard
-                          item={dish}
-                          quantityInCart={qty}
-                          onAddToCart={handleAddToCart}
-                          onUpdateQuantity={handleUpdateQuantity}
-                          onSelectRestaurant={handleSelectRestaurant}
-                        />
-                      </Grid>
+                      <DishCard
+                        key={dish.id}
+                        item={dish}
+                        quantityInCart={qty}
+                        onAddToCart={handleAddToCart}
+                        onUpdateQuantity={handleUpdateQuantity}
+                        onSelectRestaurant={handleSelectRestaurant}
+                      />
                     )
                   })}
-                </Grid>
+                </Box>
               )}
             </Box>
           )}
@@ -695,13 +714,17 @@ export default function HomePage() {
         <Box sx={{ p: 4 }}>
           <Skeleton variant="rounded" height={60} sx={{ mb: 3, borderRadius: '16px' }} />
           <Skeleton variant="rectangular" height={220} sx={{ mb: 3, borderRadius: '16px' }} />
-          <Grid container spacing={3}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+              gap: 3,
+            }}
+          >
             {Array.from({ length: 6 }).map((_, idx) => (
-              <Grid item xs={12} sm={6} md={4} key={idx}>
-                <Skeleton variant="rectangular" height={200} sx={{ borderRadius: '16px' }} />
-              </Grid>
+              <Skeleton key={idx} variant="rectangular" height={200} sx={{ borderRadius: '16px' }} />
             ))}
-          </Grid>
+          </Box>
         </Box>
       }
     >

@@ -40,6 +40,118 @@ export function OrderCard({
   const formattedId = `#${order.id.slice(-6).toUpperCase()}`
   const elapsed = formatElapsed(order.createdAt)
 
+  // Incoming / New Orders: streamlined compact card (Order ID + Action Icon)
+  const isIncoming = order.status === 'PLACED' || order.status === 'ACCEPTED'
+  if (isIncoming) {
+    return (
+      <Card
+        elevation={0}
+        onClick={() => onViewDetails(order)}
+        sx={{
+          borderRadius: '12px',
+          border: '1.5px solid #f97316',
+          bgcolor: '#ffffff',
+          p: 1.8,
+          cursor: 'pointer',
+          transition: 'all 0.2s ease',
+          boxShadow: '0 4px 14px rgba(249, 115, 22, 0.12)',
+          '&:hover': {
+            boxShadow: '0 8px 22px rgba(249, 115, 22, 0.22)',
+            borderColor: '#ea580c',
+            transform: 'translateY(-2px)',
+          },
+        }}
+      >
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
+            <Typography
+              variant="subtitle2"
+              sx={{
+                fontWeight: 800,
+                color: '#0f172a',
+                fontFamily: 'monospace',
+                fontSize: '0.96rem',
+              }}
+            >
+              {formattedId}
+            </Typography>
+            <Tooltip title="Copy full Order ID">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onCopyOrderId(order.id)
+                }}
+                sx={{ p: 0.3, color: '#94a3b8' }}
+              >
+                <ContentCopyIcon sx={{ fontSize: 14 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+            <Chip
+              size="small"
+              label={`${config.icon} ${config.badgeLabel}`}
+              sx={{
+                fontWeight: 800,
+                fontSize: '0.72rem',
+                height: 22,
+                bgcolor: config.bgColor,
+                color: config.color,
+                border: `1px solid ${config.borderColor}`,
+              }}
+            />
+            <Tooltip title="Review Order & Confirm">
+              <IconButton
+                size="small"
+                onClick={(e) => {
+                  e.stopPropagation()
+                  onViewDetails(order)
+                }}
+                sx={{
+                  p: 0.5,
+                  color: '#64748b',
+                  '&:hover': { color: '#ea580c', bgcolor: '#fff7ed' },
+                }}
+              >
+                <MoreVertIcon sx={{ fontSize: 18 }} />
+              </IconButton>
+            </Tooltip>
+          </Box>
+        </Box>
+
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.2 }}>
+          <Chip
+            size="small"
+            icon={<AccessTimeIcon sx={{ fontSize: '13px !important' }} />}
+            label={elapsed}
+            sx={{
+              fontSize: '0.72rem',
+              height: 20,
+              bgcolor: '#f8fafc',
+              color: '#64748b',
+              fontWeight: 600,
+            }}
+          />
+          <Typography
+            variant="caption"
+            sx={{
+              color: '#ea580c',
+              fontWeight: 700,
+              fontSize: '0.75rem',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.3,
+            }}
+          >
+            Review & Confirm →
+          </Typography>
+        </Box>
+      </Card>
+    )
+  }
+
   return (
     <Card
       elevation={0}

@@ -34,9 +34,11 @@ import { useHistoryModal } from '@/hooks/use-history-modal'
 
 interface OrderItem {
   id: string
+  menuItemId?: string
   name: string
   price: number
   quantity: number
+  isVeg?: boolean
 }
 
 interface Order {
@@ -111,10 +113,11 @@ function OrdersContent() {
           restaurantId: order.restaurantId,
           restaurantName: order.restaurant?.name || 'Restaurant',
           item: {
-            menuItemId: it.id,
+            menuItemId: it.menuItemId || it.id,
             name: it.name,
             price: it.price,
             quantity: it.quantity,
+            isVeg: it.isVeg ?? true,
           },
         })
       )

@@ -6,7 +6,6 @@ import {
   Box,
   Drawer,
   Typography,
-  Grid,
   Chip,
   TextField,
   InputAdornment,
@@ -27,10 +26,12 @@ import RestaurantMenuIcon from '@mui/icons-material/RestaurantMenu'
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
 import LocalFireDepartmentIcon from '@mui/icons-material/LocalFireDepartment'
 import MenuIcon from '@mui/icons-material/Menu'
+import SettingsIcon from '@mui/icons-material/Settings'
 import { CustomerSidebar } from '@/components/customer/customer-sidebar'
 import { RestaurantCard } from '@/components/customer/restaurant-card'
 import { DishCard, ExtendedMenuItem } from '@/components/customer/dish-card'
 import { CartSidebar } from '@/components/customer/cart-sidebar'
+import { KeywordManagerDialog, KeywordItem } from '@/components/customer/keyword-manager-dialog'
 
 import { Restaurant } from '@/types/restaurant-types'
 import { apiClient } from '@/utils/api-client'
@@ -39,7 +40,16 @@ import { addItem, updateQuantity } from '@/store/slices/cart-slice'
 import { useHistoryModal } from '@/hooks/use-history-modal'
 import { useDebounce } from '@/hooks/use-debounce'
 
-const TRENDING_KEYWORDS = ['Biryani', 'Pizza', 'Burger', 'Paneer', 'Momos', 'Rolls', 'Thali', 'Cold Coffee']
+const INITIAL_KEYWORDS: KeywordItem[] = [
+  { id: '1', keyword: 'Biryani', category: 'trending', sortOrder: 1 },
+  { id: '2', keyword: 'Pizza', category: 'trending', sortOrder: 2 },
+  { id: '3', keyword: 'Burger', category: 'trending', sortOrder: 3 },
+  { id: '4', keyword: 'Paneer', category: 'trending', sortOrder: 4 },
+  { id: '5', keyword: 'Momos', category: 'trending', sortOrder: 5 },
+  { id: '6', keyword: 'Rolls', category: 'trending', sortOrder: 6 },
+  { id: '7', keyword: 'Thali', category: 'trending', sortOrder: 7 },
+  { id: '8', keyword: 'Cold Coffee', category: 'trending', sortOrder: 8 },
+]
 
 function SearchContent() {
   const router = useRouter()
@@ -50,6 +60,16 @@ function SearchContent() {
   const cart = useAppSelector((state) => state.cart)
 
   const [searchQuery, setSearchQuery] = useState(initialQuery)
+  const searchInputRef = React.useRef<HTMLInputElement>(null)
+  const shouldFocus = searchParams.get('focus') === 'true'
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      searchInputRef.current?.focus()
+    }, 120)
+    return () => clearTimeout(timer)
+  }, [shouldFocus])
+
   // Debounce search query by 300ms to avoid re-filtering on every keystroke
   const debouncedQuery = useDebounce(searchQuery, 300)
   const isDebouncing = searchQuery !== debouncedQuery
@@ -59,6 +79,8 @@ function SearchContent() {
   const [restaurants, setRestaurants] = useState<Restaurant[]>([])
   const [allItems, setAllItems] = useState<ExtendedMenuItem[]>([])
   const [loading, setLoading] = useState(true)
+  const [trendingKeywords, setTrendingKeywords] = useState<KeywordItem[]>(INITIAL_KEYWORDS)
+  const [keywordManagerOpen, setKeywordManagerOpen] = useState(false)
 
   // Responsive Drawer States
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
@@ -79,12 +101,19 @@ function SearchContent() {
     async function loadData() {
       setLoading(true)
       try {
-        const [restRes, itemRes] = await Promise.all([
+        const [restRes, itemRes, kwRes] = await Promise.all([
           apiClient.get<{ restaurants: Restaurant[] }>('/api/restaurants'),
           apiClient.get<{ items: ExtendedMenuItem[] }>('/api/menu/items'),
+          apiClient
+            .get<{ keywords: KeywordItem[] }>('/api/keywords')
+            .catch(() => ({ data: { keywords: INITIAL_KEYWORDS } } as any)),
         ])
         setRestaurants(restRes.restaurants || [])
         setAllItems(itemRes.items || [])
+        const fetchedKeywords = (kwRes as any)?.data?.keywords || (kwRes as any)?.keywords
+        if (Array.isArray(fetchedKeywords) && fetchedKeywords.length > 0) {
+          setTrendingKeywords(fetchedKeywords)
+        }
       } catch (err) {
         console.error('Failed to load search data:', err)
       } finally {
@@ -224,6 +253,7 @@ function SearchContent() {
 
             <TextField
               fullWidth
+              inputRef={searchInputRef}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Search for restaurants, cuisines, or dishes..."
@@ -264,15 +294,15 @@ function SearchContent() {
                   Trending:
                 </Typography>
               </Stack>
-              {TRENDING_KEYWORDS.map((word) => (
+              {trendingKeywords.map((item) => (
                 <Chip
-                  key={word}
-                  label={word}
+                  key={item.id || item.keyword}
+                  label={item.keyword}
                   size="small"
-                  onClick={() => setSearchQuery(word)}
+                  onClick={() => setSearchQuery(item.keyword)}
                   sx={{
-                    bgcolor: searchQuery.toLowerCase() === word.toLowerCase() ? '#ea580c' : '#ffffff',
-                    color: searchQuery.toLowerCase() === word.toLowerCase() ? '#ffffff' : '#475569',
+                    bgcolor: searchQuery.toLowerCase() === item.keyword.toLowerCase() ? '#ea580c' : '#ffffff',
+                    color: searchQuery.toLowerCase() === item.keyword.toLowerCase() ? '#ffffff' : '#475569',
                     border: '1px solid #e2e8f0',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -280,6 +310,22 @@ function SearchContent() {
                   }}
                 />
               ))}
+
+              {/* Admin Manage Keywords Collection */}
+              <Chip
+                icon={<SettingsIcon sx={{ fontSize: '14px !important', color: '#ea580c !important' }} />}
+                label="Manage"
+                size="small"
+                onClick={() => setKeywordManagerOpen(true)}
+                sx={{
+                  bgcolor: '#fff7ed',
+                  color: '#ea580c',
+                  border: '1px dashed #fdba74',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  '&:hover': { bgcolor: '#ffedd5', borderColor: '#ea580c' },
+                }}
+              />
             </Box>
           </Box>
 
@@ -336,15 +382,21 @@ function SearchContent() {
 
           {/* Loading Skeletons */}
           {loading ? (
-            <Grid container spacing={3}>
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
+                gap: 3,
+              }}
+            >
               {Array.from({ length: 6 }).map((_, i) => (
-                <Grid item xs={12} sm={6} md={4} key={i}>
+                <Box key={i}>
                   <Skeleton variant="rectangular" height={180} sx={{ borderRadius: '16px', mb: 1 }} />
                   <Skeleton variant="text" width="70%" height={24} />
                   <Skeleton variant="text" width="40%" height={18} />
-                </Grid>
+                </Box>
               ))}
-            </Grid>
+            </Box>
           ) : filteredRestaurants.length === 0 && filteredDishes.length === 0 ? (
             /* Empty State */
             <Box
@@ -389,16 +441,21 @@ function SearchContent() {
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
                     Restaurants ({filteredRestaurants.length})
                   </Typography>
-                  <Grid container spacing={3}>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+                      gap: 3,
+                    }}
+                  >
                     {filteredRestaurants.map((restaurant) => (
-                      <Grid item xs={12} sm={6} md={6} lg={4} key={restaurant.id}>
-                        <RestaurantCard
-                          restaurant={restaurant}
-                          onExplore={(r) => router.push(`/restaurant/${r.id}`)}
-                        />
-                      </Grid>
+                      <RestaurantCard
+                        key={restaurant.id}
+                        restaurant={restaurant}
+                        onExplore={(r) => router.push(`/restaurant/${r.id}`)}
+                      />
                     ))}
-                  </Grid>
+                  </Box>
                 </Box>
               )}
 
@@ -408,24 +465,29 @@ function SearchContent() {
                   <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
                     Dishes ({filteredDishes.length})
                   </Typography>
-                  <Grid container spacing={2.5}>
+                  <Box
+                    sx={{
+                      display: 'grid',
+                      gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+                      gap: 2.5,
+                    }}
+                  >
                     {filteredDishes.map((dish) => {
                       const inCart = cart.items.find((i) => i.menuItemId === dish.id)
                       const qty = inCart ? inCart.quantity : 0
 
                       return (
-                        <Grid item xs={12} sm={6} md={6} lg={4} key={dish.id}>
-                          <DishCard
-                            item={dish}
-                            quantityInCart={qty}
-                            onAddToCart={handleAddToCart}
-                            onUpdateQuantity={handleUpdateQuantity}
-                            onSelectRestaurant={(r) => router.push(`/restaurant/${r.id}`)}
-                          />
-                        </Grid>
+                        <DishCard
+                          key={dish.id}
+                          item={dish}
+                          quantityInCart={qty}
+                          onAddToCart={handleAddToCart}
+                          onUpdateQuantity={handleUpdateQuantity}
+                          onSelectRestaurant={(r) => router.push(`/restaurant/${r.id}`)}
+                        />
                       )
                     })}
-                  </Grid>
+                  </Box>
                 </Box>
               )}
             </Stack>
@@ -492,6 +554,14 @@ function SearchContent() {
           </Typography>
         </Box>
       )}
+
+      {/* Admin Keyword Manager Dialog */}
+      <KeywordManagerDialog
+        open={keywordManagerOpen}
+        onClose={() => setKeywordManagerOpen(false)}
+        keywords={trendingKeywords}
+        onKeywordsChange={setTrendingKeywords}
+      />
     </Box>
   )
 }

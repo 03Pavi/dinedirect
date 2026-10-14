@@ -8,7 +8,6 @@ import {
   Container,
   Typography,
   Button,
-  Grid,
   Card,
   Stack,
   Chip,
@@ -50,22 +49,7 @@ import {
 import { selectMyRestaurant } from '@/store/selectors/restaurant-selectors'
 import { fetchMyRestaurantThunk } from '@/store/thunks/fetch-my-restaurant-thunk'
 import QRCode from 'qrcode'
-
-type QRType = 'TABLE' | 'RESTAURANT'
-
-interface QRCodeItem {
-  id: string
-  restaurantId: string
-  tableNumber: string
-  label: string
-  code: string
-  url: string
-  color: string
-  scansCount: number
-  createdAt: string
-  lastScannedAt: string | null
-  qrType?: QRType
-}
+import { QRCodeItem, QRType } from '@/types/qr-types'
 
 const COLOR_OPTIONS = [
   { label: 'Brand Orange', hex: '#ea580c' },
@@ -89,10 +73,10 @@ export default function OwnerQRPage() {
   const [loading, setLoading] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
 
-  // Creator form state
+  // Creator form state (dynamically suggested from DB)
   const [qrType, setQrType] = useState<QRType>('TABLE')
-  const [tableNumber, setTableNumber] = useState('Table 5')
-  const [tableLabel, setTableLabel] = useState('Main Dining Hall')
+  const [tableNumber, setTableNumber] = useState('')
+  const [tableLabel, setTableLabel] = useState('')
   const [selectedColor, setSelectedColor] = useState('#ea580c')
   const [previewDataUrl, setPreviewDataUrl] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -130,7 +114,7 @@ export default function OwnerQRPage() {
     }
   }, [authInitialized, isAuthenticated, isOwner, router, dispatch])
 
-  // Fetch QR codes from API
+  // Fetch QR codes from DB
   const fetchQRCodes = async () => {
     try {
       setLoading(true)
@@ -138,9 +122,19 @@ export default function OwnerQRPage() {
       const data = await res.json()
       if (data.success && data.qrs) {
         setQrs(data.qrs)
+
+        // Dynamically suggest next table number based on actual DB records
+        const existingNumbers = (data.qrs as QRCodeItem[])
+          .filter((q) => q.qrType !== 'RESTAURANT' && q.tableNumber.toLowerCase() !== 'menu')
+          .map((q) => {
+            const match = q.tableNumber.match(/\d+/)
+            return match ? parseInt(match[0], 10) : 0
+          })
+        const maxNum = existingNumbers.length > 0 ? Math.max(...existingNumbers) : 0
+        setTableNumber(`Table ${maxNum + 1}`)
       }
     } catch (err) {
-      console.error('Failed to load QR codes', err)
+      console.error('Failed to load QR codes from DB', err)
     } finally {
       setLoading(false)
     }
@@ -201,7 +195,7 @@ export default function OwnerQRPage() {
     }
 
     const isRestaurantQR = qrType === 'RESTAURANT'
-    const effectiveTableNumber = isRestaurantQR ? 'Restaurant Menu' : tableNumber.trim()
+    const effectiveTableNumber = isRestaurantQR ? 'Menu' : tableNumber.trim()
     const effectiveLabel = isRestaurantQR
       ? `${restaurant?.name || 'Restaurant'} — Full Menu QR`
       : (tableLabel.trim() || `${tableNumber.trim()} Dining QR`)
@@ -315,34 +309,31 @@ export default function OwnerQRPage() {
     )
   }, [qrs, searchQuery])
 
-  // Analytics Stats
+  // Analytics Stats (strictly calculated from dynamic DB records)
   const stats = useMemo(() => {
     const totalScans = qrs.reduce((acc, it) => acc + (it.scansCount || 0), 0)
     const activeTables = qrs.length
-    const topTable = [...qrs].sort((a, b) => (b.scansCount || 0) - (a.scansCount || 0))[0]
+    const sorted = [...qrs].sort((a, b) => (b.scansCount || 0) - (a.scansCount || 0))
+    const topTable = sorted[0]
 
     return {
       totalScans,
       activeTables,
-      topTableName: topTable?.tableNumber || 'None',
+      topTableName: (topTable && (topTable.scansCount || 0) > 0) ? topTable.tableNumber : 'No Visits Yet',
       topTableScans: topTable?.scansCount || 0,
     }
   }, [qrs])
 
-  if (!authInitialized || (loading && !restaurant)) {
+  if (!authInitialized) {
     return (
       <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
         <Navbar />
         <Container maxWidth="xl" sx={{ py: 4 }}>
           <Skeleton variant="rectangular" height={100} sx={{ borderRadius: '12px', mb: 3 }} />
-          <Grid container spacing={3}>
-            <Grid item xs={12} md={5}>
-              <Skeleton variant="rectangular" height={450} sx={{ borderRadius: '12px' }} />
-            </Grid>
-            <Grid item xs={12} md={7}>
-              <Skeleton variant="rectangular" height={450} sx={{ borderRadius: '12px' }} />
-            </Grid>
-          </Grid>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' }, gap: 3 }}>
+            <Skeleton variant="rectangular" height={450} sx={{ borderRadius: '12px' }} />
+            <Skeleton variant="rectangular" height={450} sx={{ borderRadius: '12px' }} />
+          </Box>
         </Container>
       </Box>
     )
@@ -463,9 +454,13 @@ export default function OwnerQRPage() {
                 sx={{ bgcolor: '#fff7ed', color: '#ea580c', fontWeight: 800, height: 20, fontSize: '0.68rem' }}
               />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 900, color: '#0f172a', mt: 1 }}>
-              {stats.totalScans}
-            </Typography>
+            {loading ? (
+              <Skeleton variant="text" width={65} height={44} sx={{ mt: 0.5, borderRadius: '4px' }} />
+            ) : (
+              <Typography variant="h4" sx={{ fontWeight: 900, color: '#0f172a', mt: 1 }}>
+                {stats.totalScans}
+              </Typography>
+            )}
             <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
               Across all dining tables
             </Typography>
@@ -483,7 +478,7 @@ export default function OwnerQRPage() {
           >
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#4338ca', textTransform: 'uppercase' }}>
-                Active QR Codes
+                Active QR
               </Typography>
               <Chip
                 label="SEATS"
@@ -491,9 +486,13 @@ export default function OwnerQRPage() {
                 sx={{ bgcolor: '#eef2ff', color: '#4338ca', fontWeight: 800, height: 20, fontSize: '0.68rem' }}
               />
             </Box>
-            <Typography variant="h4" sx={{ fontWeight: 900, color: '#0f172a', mt: 1 }}>
-              {stats.activeTables}
-            </Typography>
+            {loading ? (
+              <Skeleton variant="text" width={45} height={44} sx={{ mt: 0.5, borderRadius: '4px' }} />
+            ) : (
+              <Typography variant="h4" sx={{ fontWeight: 900, color: '#0f172a', mt: 1 }}>
+                {stats.activeTables}
+              </Typography>
+            )}
             <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
               Assigned dining areas
             </Typography>
@@ -513,17 +512,31 @@ export default function OwnerQRPage() {
               <Typography variant="caption" sx={{ fontWeight: 800, color: '#059669', textTransform: 'uppercase' }}>
                 🔥 Most Visited
               </Typography>
-              <Chip
-                label={`${stats.topTableScans} scans`}
-                size="small"
-                sx={{ bgcolor: '#f0fdf4', color: '#16a34a', fontWeight: 800, height: 20, fontSize: '0.68rem' }}
-              />
+              {loading ? (
+                <Skeleton variant="rounded" width={65} height={20} sx={{ borderRadius: '10px' }} />
+              ) : (
+                <Chip
+                  label={`${stats.topTableScans} scans`}
+                  size="small"
+                  sx={{
+                    bgcolor: stats.topTableScans > 0 ? '#f0fdf4' : '#f8fafc',
+                    color: stats.topTableScans > 0 ? '#16a34a' : '#64748b',
+                    fontWeight: 800,
+                    height: 20,
+                    fontSize: '0.68rem',
+                  }}
+                />
+              )}
             </Box>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a', mt: 1 }}>
-              {stats.topTableName}
-            </Typography>
+            {loading ? (
+              <Skeleton variant="text" width={85} height={38} sx={{ mt: 0.5, borderRadius: '4px' }} />
+            ) : (
+              <Typography variant="h5" sx={{ fontWeight: 900, color: '#0f172a', mt: 1 }}>
+                {stats.topTableName}
+              </Typography>
+            )}
             <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
-              Highest scan engagement
+              {stats.topTableScans > 0 ? 'Highest scan engagement' : 'Scan a QR to register live traffic'}
             </Typography>
           </Box>
 
@@ -556,9 +569,13 @@ export default function OwnerQRPage() {
                 </IconButton>
               </Tooltip>
             </Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', mt: 1, fontFamily: 'monospace' }}>
-              #{restaurant?.id ? restaurant.id.slice(0, 12) : 'Loading...'}...
-            </Typography>
+            {loading || !restaurant ? (
+              <Skeleton variant="text" width={110} height={26} sx={{ mt: 1, borderRadius: '4px' }} />
+            ) : (
+              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', mt: 1, fontFamily: 'monospace' }}>
+                #{restaurant?.id ? restaurant.id.slice(0, 12) : 'Loading...'}...
+              </Typography>
+            )}
             <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
               Embedded in all QR tags
             </Typography>
@@ -566,9 +583,9 @@ export default function OwnerQRPage() {
         </Box>
 
         {/* Main 2-Column Layout */}
-        <Grid container spacing={3}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '5fr 7fr' }, gap: 3 }}>
           {/* LEFT COLUMN: Create & Customize QR Code */}
-          <Grid item xs={12} lg={5}>
+          <Box>
             <Card
               elevation={0}
               sx={{
@@ -767,7 +784,7 @@ export default function OwnerQRPage() {
                 }}
               >
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                  {qrType === 'RESTAURANT' ? 'Restaurant Menu QR Preview' : 'Live Stand Preview'}
+                  {qrType === 'RESTAURANT' ? 'Menu QR Preview' : 'Live Stand Preview'}
                 </Typography>
 
                 {/* QR Visual */}
@@ -865,6 +882,7 @@ export default function OwnerQRPage() {
                         url: previewTargetUrl,
                         color: selectedColor,
                         scansCount: 0,
+                        qrType: qrType,
                         createdAt: new Date().toISOString(),
                         lastScannedAt: null,
                       })
@@ -882,10 +900,10 @@ export default function OwnerQRPage() {
                 </Box>
               </Stack>
             </Card>
-          </Grid>
+          </Box>
 
           {/* RIGHT COLUMN: Existing QR Codes & Scan Performance */}
-          <Grid item xs={12} lg={7}>
+          <Box>
             <Card
               elevation={0}
               sx={{
@@ -911,8 +929,8 @@ export default function OwnerQRPage() {
                 }}
               >
                 <Box>
-                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.05rem' }}>
-                    Active Table QR Codes ({filteredQRs.length})
+                  <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 1 }}>
+                    Active Table QR Codes {loading ? <Skeleton variant="rounded" width={32} height={22} sx={{ borderRadius: '6px' }} /> : `(${filteredQRs.length})`}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#64748b' }}>
                     Monitor scan volume per table and print stands
@@ -942,7 +960,42 @@ export default function OwnerQRPage() {
 
               {/* QR Cards List */}
               <Box sx={{ flexGrow: 1, overflowY: 'auto', pr: 0.5 }}>
-                {filteredQRs.length === 0 ? (
+                {loading ? (
+                  <Stack spacing={1.8}>
+                    {Array.from({ length: 3 }).map((_, idx) => (
+                      <Card
+                        key={idx}
+                        elevation={0}
+                        sx={{
+                          p: 2,
+                          borderRadius: '10px',
+                          border: '1.5px solid #e2e8f0',
+                          bgcolor: '#ffffff',
+                          display: 'flex',
+                          flexDirection: { xs: 'column', sm: 'row' },
+                          alignItems: { xs: 'flex-start', sm: 'center' },
+                          justifyContent: 'space-between',
+                          gap: 2,
+                        }}
+                      >
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1 }}>
+                          <Skeleton variant="rounded" width={10} height={48} sx={{ borderRadius: '4px', flexShrink: 0 }} />
+                          <Box sx={{ flex: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
+                              <Skeleton variant="text" width={90} height={24} sx={{ borderRadius: '4px' }} />
+                              <Skeleton variant="rounded" width={80} height={20} sx={{ borderRadius: '4px' }} />
+                            </Box>
+                            <Skeleton variant="text" width="60%" height={18} sx={{ borderRadius: '4px' }} />
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                          <Skeleton variant="rounded" width={85} height={26} sx={{ borderRadius: '16px' }} />
+                          <Skeleton variant="rounded" width={120} height={32} sx={{ borderRadius: '8px' }} />
+                        </Box>
+                      </Card>
+                    ))}
+                  </Stack>
+                ) : filteredQRs.length === 0 ? (
                   <Box sx={{ textAlign: 'center', py: 8, color: '#94a3b8' }}>
                     <Typography sx={{ fontWeight: 600 }}>No QR codes found</Typography>
                     <Typography variant="caption">Use the generator on the left to add table QR codes</Typography>
@@ -1002,9 +1055,13 @@ export default function OwnerQRPage() {
                             <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 500, display: 'block' }}>
                               {item.label}
                             </Typography>
-                            {item.lastScannedAt && (
-                              <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem' }}>
-                                Last scan: {new Date(item.lastScannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {item.lastScannedAt ? (
+                              <Typography variant="caption" sx={{ color: '#059669', fontSize: '0.7rem', display: 'block', fontWeight: 600 }}>
+                                Scanned {new Date(item.lastScannedAt).toLocaleDateString()} {new Date(item.lastScannedAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                              </Typography>
+                            ) : (
+                              <Typography variant="caption" sx={{ color: '#94a3b8', fontSize: '0.7rem', display: 'block' }}>
+                                Not scanned yet
                               </Typography>
                             )}
                           </Box>
@@ -1020,12 +1077,12 @@ export default function OwnerQRPage() {
                               px: 1.5,
                               py: 0.6,
                               borderRadius: '20px',
-                              bgcolor: item.scansCount > 40 ? '#fff7ed' : '#f8fafc',
+                              bgcolor: item.scansCount > 0 ? '#fff7ed' : '#f8fafc',
                               border: '1px solid',
-                              borderColor: item.scansCount > 40 ? '#fed7aa' : '#e2e8f0',
+                              borderColor: item.scansCount > 0 ? '#fed7aa' : '#e2e8f0',
                             }}
                           >
-                            <WhatshotIcon sx={{ fontSize: 16, color: item.scansCount > 40 ? '#ea580c' : '#94a3b8' }} />
+                            <WhatshotIcon sx={{ fontSize: 16, color: item.scansCount > 0 ? '#ea580c' : '#94a3b8' }} />
                             <Typography sx={{ fontWeight: 800, fontSize: '0.88rem', color: '#0f172a' }}>
                               {item.scansCount}
                             </Typography>
@@ -1098,8 +1155,8 @@ export default function OwnerQRPage() {
                 )}
               </Box>
             </Card>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Container>
 
       {/* PRINTABLE TABLE STAND MODAL */}

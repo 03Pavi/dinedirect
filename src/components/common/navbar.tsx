@@ -32,6 +32,7 @@ import {
 } from '@/store/selectors/auth-selectors'
 import { fetchMeThunk } from '@/store/thunks/fetch-me-thunk'
 import { logoutThunk } from '@/store/thunks/logout-thunk'
+import { OwnerNotificationBell } from '@/components/owner/owner-notification-bell'
 
 export function Navbar() {
   const router = useRouter()
@@ -111,17 +112,20 @@ export function Navbar() {
             {isAuthenticated && user ? (
               <>
                 {isOwner ? (
-                  <Button
-                    variant="outlined"
-                    color="secondary"
-                    size="small"
-                    component={Link}
-                    href="/owner/qr"
-                    startIcon={<QrCode2Icon />}
-                    sx={{ borderRadius: 2, fontWeight: 700 }}
-                  >
-                    QR
-                  </Button>
+                  <>
+                    <Button
+                      variant="outlined"
+                      color="secondary"
+                      size="small"
+                      component={Link}
+                      href="/owner/qr"
+                      startIcon={<QrCode2Icon />}
+                      sx={{ borderRadius: 2, fontWeight: 700 }}
+                    >
+                      QR
+                    </Button>
+                    <OwnerNotificationBell />
+                  </>
                 ) : (
                   <>
                     <Button

@@ -6,7 +6,6 @@ import {
   Box,
   Drawer,
   Typography,
-  Grid,
   Button,
   Stack,
   Badge,
@@ -210,9 +209,14 @@ function OffersContent() {
             Available Coupons ({DEALS.length})
           </Typography>
 
-          <Grid container spacing={3}>
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+              gap: 3,
+            }}
+          >
             {DEALS.map((deal) => (
-              <Grid item xs={12} sm={6} md={6} lg={6} key={deal.code}>
                 <Card
                   elevation={0}
                   sx={{
@@ -305,9 +309,8 @@ function OffersContent() {
                     </Button>
                   </Box>
                 </Card>
-              </Grid>
             ))}
-          </Grid>
+          </Box>
         </Box>
       </Box>
 

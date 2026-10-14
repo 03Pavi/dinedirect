@@ -21,7 +21,8 @@ import { RestaurantDetailView } from '@/components/customer/restaurant-detail-vi
 import { CartSidebar } from '@/components/customer/cart-sidebar'
 import { Restaurant } from '@/types/restaurant-types'
 import { apiClient } from '@/utils/api-client'
-import { useAppSelector } from '@/store/hooks'
+import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { setCartTable } from '@/store/slices/cart-slice'
 import { useHistoryModal } from '@/hooks/use-history-modal'
 
 function RestaurantDetailPage() {
@@ -52,6 +53,17 @@ function RestaurantDetailPage() {
     onClose: () => setMobileCartOpen(false),
     modalId: 'mobile-cart',
   })
+
+  const dispatch = useAppDispatch()
+  const tableParam = searchParams.get('table')
+  const qrIdParam = searchParams.get('qrId')
+
+  // When arriving via Table QR Code, bind table to cart and record scan
+  useEffect(() => {
+    if (tableParam && tableParam.toLowerCase() !== 'menu') {
+      dispatch(setCartTable({ tableNumber: tableParam, qrId: qrIdParam }))
+    }
+  }, [tableParam, qrIdParam, dispatch])
 
   // Record QR Scan event if arriving via Table QR Code
   useEffect(() => {
@@ -245,9 +257,9 @@ function RestaurantDetailPage() {
               </Button>
             </Box>
           ) : (
-            /* Real Restaurant Detail View */
             <RestaurantDetailView
               restaurant={restaurant}
+              tableNumber={tableParam || cart.tableNumber}
               onBack={() => router.push('/home')}
             />
           )}

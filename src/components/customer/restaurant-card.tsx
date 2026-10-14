@@ -40,6 +40,7 @@ export function RestaurantCard({ restaurant, onExplore }: RestaurantCardProps) {
       elevation={0}
       onClick={() => onExplore(restaurant)}
       sx={{
+        minWidth:"max-content",
         borderRadius: '20px',
         border: '1.5px solid #e2e8f0',
         bgcolor: '#ffffff',

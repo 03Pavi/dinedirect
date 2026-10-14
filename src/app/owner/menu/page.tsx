@@ -8,7 +8,6 @@ import {
   Container,
   Typography,
   Button,
-  Grid,
   Stack,
   Chip,
   TextField,
@@ -316,13 +315,11 @@ export default function OwnerMenuPage() {
         <Navbar />
         <Container maxWidth="lg" sx={{ py: 5 }}>
           <Skeleton variant="rectangular" height={100} sx={{ borderRadius: '12px', mb: 3 }} />
-          <Grid container spacing={3}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Grid item xs={12} sm={6} md={4} key={i}>
-                <Skeleton variant="rectangular" height={280} sx={{ borderRadius: '12px' }} />
-              </Grid>
+              <Skeleton key={i} variant="rectangular" height={280} sx={{ borderRadius: '12px' }} />
             ))}
-          </Grid>
+          </Box>
         </Container>
       </Box>
     )
@@ -456,84 +453,76 @@ export default function OwnerMenuPage() {
             </Box>
 
             {/* Metrics Overview Cards */}
-            <Grid container spacing={2}>
-              <Grid item xs={6} sm={3}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
-                    bgcolor: '#ffffff',
-                  }}
-                >
-                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
-                    TOTAL DISHES
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', mt: 0.5 }}>
-                    {items.length}
-                  </Typography>
-                </Card>
-              </Grid>
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' }, gap: 2 }}>
+              <Card
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0',
+                  bgcolor: '#ffffff',
+                }}
+              >
+                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
+                  TOTAL DISHES
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', mt: 0.5 }}>
+                  {items.length}
+                </Typography>
+              </Card>
 
-              <Grid item xs={6} sm={3}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
-                    bgcolor: '#ffffff',
-                  }}
-                >
-                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
-                    CATEGORIES
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', mt: 0.5 }}>
-                    {categories.length}
-                  </Typography>
-                </Card>
-              </Grid>
+              <Card
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0',
+                  bgcolor: '#ffffff',
+                }}
+              >
+                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
+                  CATEGORIES
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', mt: 0.5 }}>
+                  {categories.length}
+                </Typography>
+              </Card>
 
-              <Grid item xs={6} sm={3}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
-                    bgcolor: '#ffffff',
-                  }}
-                >
-                  <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 700 }}>
-                    IN STOCK (LIVE)
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: '#16a34a', mt: 0.5 }}>
-                    {inStockCount}
-                  </Typography>
-                </Card>
-              </Grid>
+              <Card
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0',
+                  bgcolor: '#ffffff',
+                }}
+              >
+                <Typography variant="caption" sx={{ color: '#15803d', fontWeight: 700 }}>
+                  IN STOCK (LIVE)
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 800, color: '#16a34a', mt: 0.5 }}>
+                  {inStockCount}
+                </Typography>
+              </Card>
 
-              <Grid item xs={6} sm={3}>
-                <Card
-                  elevation={0}
-                  sx={{
-                    p: 2,
-                    borderRadius: '10px',
-                    border: '1px solid #e2e8f0',
-                    bgcolor: '#ffffff',
-                  }}
-                >
-                  <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
-                    VEG / NON-VEG
-                  </Typography>
-                  <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', mt: 0.5 }}>
-                    <span style={{ color: '#16a34a' }}>{vegCount}</span> /{' '}
-                    <span style={{ color: '#dc2626' }}>{nonVegCount}</span>
-                  </Typography>
-                </Card>
-              </Grid>
-            </Grid>
+              <Card
+                elevation={0}
+                sx={{
+                  p: 2,
+                  borderRadius: '10px',
+                  border: '1px solid #e2e8f0',
+                  bgcolor: '#ffffff',
+                }}
+              >
+                <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 700 }}>
+                  VEG / NON-VEG
+                </Typography>
+                <Typography variant="h5" sx={{ fontWeight: 800, color: '#0f172a', mt: 0.5 }}>
+                  <span style={{ color: '#16a34a' }}>{vegCount}</span> /{' '}
+                  <span style={{ color: '#dc2626' }}>{nonVegCount}</span>
+                </Typography>
+              </Card>
+            </Box>
 
             {/* Filter & Search Toolbar */}
             <Card
@@ -545,9 +534,9 @@ export default function OwnerMenuPage() {
                 bgcolor: '#ffffff',
               }}
             >
-              <Grid container spacing={2} alignItems="center">
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.2fr 1fr 1fr' }, gap: 2, alignItems: 'center' }}>
                 {/* Search Field */}
-                <Grid item xs={12} md={4}>
+                <Box>
                   <TextField
                     placeholder="Search dishes by name or ingredients..."
                     value={searchQuery}
@@ -563,10 +552,10 @@ export default function OwnerMenuPage() {
                       sx: { borderRadius: '8px' },
                     }}
                   />
-                </Grid>
+                </Box>
 
                 {/* Dietary Filter */}
-                <Grid item xs={12} sm={6} md={4}>
+                <Box>
                   <Stack direction="row" spacing={1} alignItems="center">
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
                       DIET:
@@ -593,10 +582,10 @@ export default function OwnerMenuPage() {
                       />
                     ))}
                   </Stack>
-                </Grid>
+                </Box>
 
                 {/* Availability Filter */}
-                <Grid item xs={12} sm={6} md={4}>
+                <Box>
                   <Stack direction="row" spacing={1} alignItems="center" justifyContent={{ sm: 'flex-end' }}>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b' }}>
                       STOCK:
@@ -629,8 +618,8 @@ export default function OwnerMenuPage() {
                       />
                     ))}
                   </Stack>
-                </Grid>
-              </Grid>
+                </Box>
+              </Box>
 
               {/* Category Navigation Tabs */}
               <Divider sx={{ my: 2 }} />
@@ -716,23 +705,22 @@ export default function OwnerMenuPage() {
 
             {/* Menu Items Grid */}
             {filteredItems.length > 0 ? (
-              <Grid container spacing={2.5}>
+              <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
                 {filteredItems.map((item) => {
                   const cat = categories.find((c) => c.id === item.categoryId)
                   return (
-                    <Grid item xs={12} sm={6} md={4} key={item.id}>
-                      <MenuItemCard
-                        item={item}
-                        categoryName={cat?.name}
-                        onEdit={handleOpenEditItem}
-                        onDelete={(it) => setDeleteConfirmItem(it)}
-                        onToggleAvailability={handleToggleAvailability}
-                        isToggling={togglingItemId === item.id}
-                      />
-                    </Grid>
+                    <MenuItemCard
+                      key={item.id}
+                      item={item}
+                      categoryName={cat?.name}
+                      onEdit={handleOpenEditItem}
+                      onDelete={(it) => setDeleteConfirmItem(it)}
+                      onToggleAvailability={handleToggleAvailability}
+                      isToggling={togglingItemId === item.id}
+                    />
                   )
                 })}
-              </Grid>
+              </Box>
             ) : (
               /* Empty State */
               <Card

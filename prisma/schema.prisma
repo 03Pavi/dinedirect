@@ -42,6 +42,7 @@ model Restaurant {
   owner        User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
   categories   MenuCategory[]
   orders       Order[]
+  qrCodes      QRCode[]
 }
 
 model MenuCategory {
@@ -103,3 +104,31 @@ model OrderItem {
   order      Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
   menuItem   MenuItem? @relation(fields: [menuItemId], references: [id], onDelete: SetNull)
 }
+
+model TrendingKeyword {
+  id          String   @id @default(uuid())
+  keyword     String   @unique
+  category    String   @default("trending")
+  isTrending  Boolean  @default(true)
+  searchCount Int      @default(0)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model QRCode {
+  id            String      @id @default(uuid())
+  restaurantId  String
+  tableNumber   String
+  label         String
+  code          String
+  url           String
+  color         String      @default("#ea580c")
+  scansCount    Int         @default(0)
+  qrType        String      @default("TABLE") // TABLE | RESTAURANT
+  createdAt     DateTime    @default(now())
+  lastScannedAt DateTime?
+
+  restaurant    Restaurant  @relation(fields: [restaurantId], references: [id], onDelete: Cascade)
+}
+

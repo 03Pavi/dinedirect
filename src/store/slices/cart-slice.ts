@@ -63,9 +63,18 @@ export const cartSlice = createSlice({
         state.restaurantName = null
       }
     },
+    setCartTable: (
+      state,
+      action: PayloadAction<{ tableNumber?: string | null; qrId?: string | null }>
+    ) => {
+      state.tableNumber = action.payload.tableNumber ?? null
+      state.qrId = action.payload.qrId ?? null
+    },
     clearCart: (state) => {
       state.restaurantId = null
       state.restaurantName = null
+      state.tableNumber = null
+      state.qrId = null
       state.items = []
       state.subtotal = 0
       state.deliveryFee = 0
@@ -73,5 +82,5 @@ export const cartSlice = createSlice({
   },
 })
 
-export const { addItem, removeItem, updateQuantity, clearCart } = cartSlice.actions
+export const { addItem, removeItem, updateQuantity, clearCart, setCartTable } = cartSlice.actions
 export default cartSlice.reducer

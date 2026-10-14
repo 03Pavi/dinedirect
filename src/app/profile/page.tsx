@@ -6,7 +6,6 @@ import {
   Box,
   Drawer,
   Typography,
-  Grid,
   Button,
   Stack,
   Badge,
@@ -234,32 +233,32 @@ function ProfileContent() {
                   Personal Information
                 </Typography>
 
-                <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' }, gap: 2 }}>
+                  <Box>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 0.5, display: 'block' }}>
                       Full Name
                     </Typography>
                     <TextField fullWidth size="small" value={user.name} disabled sx={{ bgcolor: '#f8fafc' }} />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
+                  </Box>
+                  <Box>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 0.5, display: 'block' }}>
                       Email Address
                     </Typography>
                     <TextField fullWidth size="small" value={user.email} disabled sx={{ bgcolor: '#f8fafc' }} />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
+                  </Box>
+                  <Box>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 0.5, display: 'block' }}>
                       Phone Number
                     </Typography>
                     <TextField fullWidth size="small" value={user.phone || '+91 98765 43210'} disabled sx={{ bgcolor: '#f8fafc' }} />
-                  </Grid>
-                  <Grid item xs={12} sm={6}>
+                  </Box>
+                  <Box>
                     <Typography variant="caption" sx={{ fontWeight: 700, color: '#64748b', mb: 0.5, display: 'block' }}>
                       Account Role
                     </Typography>
                     <TextField fullWidth size="small" value={user.role} disabled sx={{ bgcolor: '#f8fafc' }} />
-                  </Grid>
-                </Grid>
+                  </Box>
+                </Box>
               </Card>
 
               {/* Preferences */}

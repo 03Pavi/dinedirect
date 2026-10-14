@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import {
@@ -31,10 +31,16 @@ import StorefrontIcon from '@mui/icons-material/Storefront'
 import TableRestaurantIcon from '@mui/icons-material/TableRestaurant'
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
-import { updateQuantity, removeItem, clearCart } from '@/store/slices/cart-slice'
+import { updateQuantity, removeItem, clearCart, setCartTable } from '@/store/slices/cart-slice'
 import { selectCurrentUser, selectIsAuthenticated } from '@/store/selectors/auth-selectors'
 import { apiClient } from '@/utils/api-client'
 import { useHistoryModal } from '@/hooks/use-history-modal'
+
+interface TableOption {
+  id: string
+  tableNumber: string
+  label: string
+}
 
 interface CartSidebarProps {
   onClose?: () => void
@@ -51,11 +57,48 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
   const [couponCode, setCouponCode] = useState('')
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [couponError, setCouponError] = useState('')
-  const [tableNumber, setTableNumber] = useState('Table 1')
+  const [tableNumber, setTableNumber] = useState(cart.tableNumber || '')
+  const [availableTables, setAvailableTables] = useState<TableOption[]>([])
+  const [loadingTables, setLoadingTables] = useState(false)
   const [orderNote, setOrderNote] = useState('')
   const [placingOrder, setPlacingOrder] = useState(false)
   const [orderSuccessId, setOrderSuccessId] = useState<string | null>(null)
   const [checkoutDialogOpen, setCheckoutDialogOpen] = useState(false)
+
+  // Keep table synchronized with cart state
+  useEffect(() => {
+    if (cart.tableNumber) {
+      setTableNumber(cart.tableNumber)
+    }
+  }, [cart.tableNumber])
+
+  // Fetch dynamic tables from DB for current restaurant
+  useEffect(() => {
+    if (!cart.restaurantId) return
+    let active = true
+    setLoadingTables(true)
+    apiClient
+      .get<{ tables: TableOption[] }>(`/api/qr/tables?restaurantId=${encodeURIComponent(cart.restaurantId)}`)
+      .then((res) => {
+        if (active && res?.tables) {
+          setAvailableTables(res.tables)
+          if (!cart.tableNumber && res.tables.length > 0) {
+            setTableNumber(res.tables[0].tableNumber)
+            dispatch(setCartTable({ tableNumber: res.tables[0].tableNumber }))
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('Failed to load restaurant tables from DB', err)
+      })
+      .finally(() => {
+        if (active) setLoadingTables(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [cart.restaurantId, cart.tableNumber, dispatch])
 
   // Manage back-button history on checkout modal
   useHistoryModal({
@@ -495,14 +538,55 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
         <DialogContent dividers>
           <Stack spacing={2.5} sx={{ pt: 1 }}>
             <Box>
-              <Typography variant="body2" sx={{ fontWeight: 700, color: '#475569', mb: 0.8 }}>
-                Table Number / Location
-              </Typography>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                <Typography variant="body2" sx={{ fontWeight: 700, color: '#475569' }}>
+                  Table Number / Location
+                </Typography>
+                {loadingTables && (
+                  <Typography variant="caption" sx={{ color: '#94a3b8' }}>
+                    Loading tables...
+                  </Typography>
+                )}
+              </Box>
+
+              {availableTables.length > 0 && (
+                <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 1.2 }}>
+                  {availableTables.map((tbl) => {
+                    const isSelected = tableNumber.toLowerCase() === tbl.tableNumber.toLowerCase()
+                    return (
+                      <Chip
+                        key={tbl.id}
+                        size="small"
+                        label={tbl.tableNumber}
+                        clickable
+                        onClick={() => {
+                          setTableNumber(tbl.tableNumber)
+                          dispatch(setCartTable({ tableNumber: tbl.tableNumber }))
+                        }}
+                        sx={{
+                          fontWeight: 700,
+                          bgcolor: isSelected ? '#ea580c' : '#f8fafc',
+                          color: isSelected ? '#ffffff' : '#334155',
+                          border: '1px solid',
+                          borderColor: isSelected ? '#ea580c' : '#cbd5e1',
+                          '&:hover': {
+                            bgcolor: isSelected ? '#c2410c' : '#f1f5f9',
+                          },
+                        }}
+                      />
+                    )
+                  })}
+                </Box>
+              )}
+
               <TextField
                 fullWidth
                 size="small"
                 value={tableNumber}
-                onChange={(e) => setTableNumber(e.target.value)}
+                onChange={(e) => {
+                  setTableNumber(e.target.value)
+                  dispatch(setCartTable({ tableNumber: e.target.value }))
+                }}
                 placeholder="e.g. Table 4"
               />
             </Box>

@@ -6,7 +6,6 @@ import {
   Typography,
   Button,
   Chip,
-  Grid,
   Tabs,
   Tab,
   Switch,
@@ -20,6 +19,7 @@ import LocationOnIcon from '@mui/icons-material/LocationOn'
 import DeliveryDiningIcon from '@mui/icons-material/DeliveryDining'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import PhoneIcon from '@mui/icons-material/Phone'
+import QrCode2Icon from '@mui/icons-material/QrCode2'
 import { Restaurant } from '@/types/restaurant-types'
 import { MenuCategory, MenuItem } from '@/types/menu-types'
 import { ExtendedMenuItem, DishCard } from './dish-card'
@@ -29,10 +29,11 @@ import { addItem, updateQuantity } from '@/store/slices/cart-slice'
 
 interface RestaurantDetailViewProps {
   restaurant: Restaurant
+  tableNumber?: string | null
   onBack: () => void
 }
 
-export function RestaurantDetailView({ restaurant, onBack }: RestaurantDetailViewProps) {
+export function RestaurantDetailView({ restaurant, tableNumber, onBack }: RestaurantDetailViewProps) {
   const dispatch = useAppDispatch()
   const cart = useAppSelector((state) => state.cart)
 
@@ -179,6 +180,21 @@ export function RestaurantDetailView({ restaurant, onBack }: RestaurantDetailVie
                   {restaurant.city || 'Nearby'}
                 </Typography>
               </Box>
+              {tableNumber && tableNumber.toLowerCase() !== 'menu' && (
+                <Chip
+                  icon={<QrCode2Icon sx={{ color: '#ffffff !important', fontSize: '15px !important' }} />}
+                  label={`Dine-In: ${tableNumber}`}
+                  size="small"
+                  sx={{
+                    bgcolor: 'rgba(234, 88, 12, 0.95)',
+                    backdropFilter: 'blur(4px)',
+                    color: '#ffffff',
+                    fontWeight: 800,
+                    fontSize: '0.72rem',
+                    height: 24,
+                  }}
+                />
+              )}
               {restaurant.phone && (
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                   <PhoneIcon sx={{ fontSize: 16, color: '#ea580c' }} />
@@ -326,23 +342,22 @@ export function RestaurantDetailView({ restaurant, onBack }: RestaurantDetailVie
           </Typography>
         </Box>
       ) : (
-        <Grid container spacing={2.5}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
           {filteredItems.map((item) => {
             const inCartItem = cart.items.find((i) => i.menuItemId === item.id)
             const qty = inCartItem ? inCartItem.quantity : 0
 
             return (
-              <Grid item xs={12} sm={6} md={4} key={item.id}>
-                <DishCard
-                  item={item}
-                  quantityInCart={qty}
-                  onAddToCart={handleAddToCart}
-                  onUpdateQuantity={handleUpdateQuantity}
-                />
-              </Grid>
+              <DishCard
+                key={item.id}
+                item={item}
+                quantityInCart={qty}
+                onAddToCart={handleAddToCart}
+                onUpdateQuantity={handleUpdateQuantity}
+              />
             )
           })}
-        </Grid>
+        </Box>
       )}
     </Box>
   )

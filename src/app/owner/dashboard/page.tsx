@@ -8,7 +8,6 @@ import {
   Container,
   Typography,
   Card,
-  Grid,
   Stack,
   Chip,
   Switch,
@@ -104,17 +103,11 @@ export default function OwnerDashboardPage() {
         <Navbar />
         <Container maxWidth="lg" sx={{ py: 6 }}>
           <Skeleton variant="rectangular" height={180} sx={{ borderRadius: '8px', mb: 3 }} />
-          <Grid container spacing={2.5}>
-            <Grid item xs={12} md={4}>
-              <Skeleton variant="rectangular" height={140} sx={{ borderRadius: '8px' }} />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Skeleton variant="rectangular" height={140} sx={{ borderRadius: '8px' }} />
-            </Grid>
-            <Grid item xs={12} md={4}>
-              <Skeleton variant="rectangular" height={140} sx={{ borderRadius: '8px' }} />
-            </Grid>
-          </Grid>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
+            <Skeleton variant="rectangular" height={140} sx={{ borderRadius: '8px' }} />
+            <Skeleton variant="rectangular" height={140} sx={{ borderRadius: '8px' }} />
+            <Skeleton variant="rectangular" height={140} sx={{ borderRadius: '8px' }} />
+          </Box>
         </Container>
       </Box>
     )
