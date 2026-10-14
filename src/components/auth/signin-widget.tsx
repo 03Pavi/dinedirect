@@ -85,11 +85,11 @@ export function SignInWidget() {
               if (user.role === 'RESTAURANT_OWNER') {
                 router.push('/owner/dashboard')
               } else {
-                router.push('/menu')
+                router.push('/home')
               }
             }}
           >
-            Continue to {user.role === 'RESTAURANT_OWNER' ? 'Dashboard' : 'Menu'}
+            Continue to {user.role === 'RESTAURANT_OWNER' ? 'Dashboard' : 'Home'}
           </SharpButton>
           <Button
             fullWidth

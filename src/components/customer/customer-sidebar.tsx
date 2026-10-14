@@ -56,26 +56,36 @@ export function CustomerSidebar({
   ]
 
   const handleNavClick = (label: string) => {
-    if (label === 'Profile' && !isAuthenticated) {
-      if (onItemClick) onItemClick()
-      router.push('/login')
-      return
-    }
-    if (label === 'Orders' && !isAuthenticated) {
-      if (onItemClick) onItemClick()
-      router.push('/login')
-      return
-    }
-    if (label === 'Home') {
-      if (onItemClick) onItemClick()
-      router.push('/menu')
-      return
-    }
     if (setActiveNav) {
       setActiveNav(label)
     }
     if (onItemClick) {
       onItemClick()
+    }
+
+    if (label === 'Home') {
+      router.push('/home')
+      return
+    }
+    if (label === 'Search') {
+      router.push('/search')
+      return
+    }
+    if (label === 'Orders') {
+      router.push('/orders')
+      return
+    }
+    if (label === 'Offers') {
+      router.push('/offers')
+      return
+    }
+    if (label === 'Profile') {
+      router.push('/profile')
+      return
+    }
+    if (label === 'More') {
+      router.push('/more')
+      return
     }
   }
 

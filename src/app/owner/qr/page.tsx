@@ -156,9 +156,9 @@ export default function OwnerQRPage() {
   const previewTargetUrl = useMemo(() => {
     if (!restaurant) return ''
     if (qrType === 'RESTAURANT') {
-      return `${origin}/menu?restaurantId=${encodeURIComponent(restaurant.id)}`
+      return `${origin}/home?restaurantId=${encodeURIComponent(restaurant.id)}`
     }
-    return `${origin}/menu?restaurantId=${encodeURIComponent(restaurant.id)}&table=${encodeURIComponent(tableNumber || 'Table')}`
+    return `${origin}/home?restaurantId=${encodeURIComponent(restaurant.id)}&table=${encodeURIComponent(tableNumber || 'Table')}`
   }, [origin, restaurant, tableNumber, qrType])
 
   useEffect(() => {

@@ -57,7 +57,7 @@ export function SignupWizard() {
       if (user.role === 'RESTAURANT_OWNER') {
         router.replace('/owner/dashboard')
       } else {
-        router.replace('/menu')
+        router.replace('/home')
       }
     }
   }, [isAuthenticated, user, router])

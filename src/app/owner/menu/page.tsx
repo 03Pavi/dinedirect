@@ -409,7 +409,7 @@ export default function OwnerMenuPage() {
                   variant="outlined"
                   color="secondary"
                   component={Link}
-                  href={`/menu?restaurantId=${restaurant.id}`}
+                  href={`/home?restaurantId=${restaurant.id}`}
                   target="_blank"
                   startIcon={<VisibilityIcon />}
                   sx={{

@@ -56,7 +56,7 @@ export function getRestaurantQRCodes(restaurantId: string, restaurantName: strin
     const initialQRs: RestaurantQRCode[] = defaultTables.map((t, idx) => {
       const id = `qr-${restaurantId}-${idx + 1}`
       const code = `DINE-${restaurantId.slice(0, 4).toUpperCase()}-T${idx + 1}`
-      const url = `${host}/menu?restaurantId=${encodeURIComponent(restaurantId)}&table=${encodeURIComponent(t.tableNumber)}&qrId=${encodeURIComponent(id)}`
+      const url = `${host}/home?restaurantId=${encodeURIComponent(restaurantId)}&table=${encodeURIComponent(t.tableNumber)}&qrId=${encodeURIComponent(id)}`
       return {
         id,
         restaurantId,
@@ -92,7 +92,7 @@ export function createRestaurantQRCode(params: {
   const id = `qr-${params.restaurantId}-${Date.now().toString(36)}`
   const code = `DINE-${params.restaurantId.slice(0, 4).toUpperCase()}-${params.tableNumber.replace(/\s+/g, '').toUpperCase()}`
   const host = params.host || 'http://localhost:3000'
-  const url = `${host}/menu?restaurantId=${encodeURIComponent(params.restaurantId)}&table=${encodeURIComponent(params.tableNumber)}&qrId=${encodeURIComponent(id)}`
+  const url = `${host}/home?restaurantId=${encodeURIComponent(params.restaurantId)}&table=${encodeURIComponent(params.tableNumber)}&qrId=${encodeURIComponent(id)}`
 
   const newQR: RestaurantQRCode = {
     id,

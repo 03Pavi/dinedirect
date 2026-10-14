@@ -38,6 +38,7 @@ import LockOutlinedIcon from '@mui/icons-material/LockOutlined'
 import RestaurantIcon from '@mui/icons-material/Restaurant'
 
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
+import { DeliveryAddressMap } from '@/components/customer/delivery-address-map'
 import { updateQuantity, removeItem, clearCart } from '@/store/slices/cart-slice'
 import { selectCurrentUser, selectIsAuthenticated } from '@/store/selectors/auth-selectors'
 import { apiClient } from '@/utils/api-client'
@@ -281,9 +282,9 @@ export default function CheckoutPage() {
                 variant="contained"
                 onClick={() => {
                   if (cart.restaurantId) {
-                    router.push(`/menu/${cart.restaurantId}`)
+                    router.push(`/home?restaurantId=${cart.restaurantId}`)
                   } else {
-                    router.push('/')
+                    router.push('/home')
                   }
                 }}
                 sx={{
@@ -516,23 +517,12 @@ export default function CheckoutPage() {
                 </Box>
               )}
 
-              {/* Delivery Address Input */}
+              {/* Delivery Address Input & Online Map Marker */}
               {orderType === 'DELIVERY' && (
-                <Box sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: '14px', border: '1px solid #e2e8f0' }}>
-                  <Typography variant="body2" sx={{ fontWeight: 700, color: '#334155', mb: 1 }}>
-                    Delivery Address
-                  </Typography>
-                  <TextField
-                    fullWidth
-                    size="small"
-                    multiline
-                    rows={2}
-                    value={deliveryAddress}
-                    onChange={(e) => setDeliveryAddress(e.target.value)}
-                    placeholder="Enter complete delivery address with landmark..."
-                    sx={{ bgcolor: '#ffffff' }}
-                  />
-                </Box>
+                <DeliveryAddressMap
+                  value={deliveryAddress}
+                  onChange={setDeliveryAddress}
+                />
               )}
             </Paper>
 

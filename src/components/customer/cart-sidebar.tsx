@@ -400,7 +400,7 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
             <Button
               variant="contained"
               size="small"
-              onClick={handleApplyCoupon}
+              onClick={() => handleApplyCoupon()}
               disabled={!!appliedCoupon || !couponCode.trim()}
               startIcon={<LocalOfferIcon sx={{ fontSize: 16 }} />}
               sx={{

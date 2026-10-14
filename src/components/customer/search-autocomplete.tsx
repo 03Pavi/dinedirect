@@ -19,6 +19,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront'
 import WhatshotIcon from '@mui/icons-material/Whatshot'
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import { Restaurant } from '@/types/restaurant-types'
+import { useDebounce } from '@/hooks/use-debounce'
 
 interface SearchDish {
   id: string
@@ -71,7 +72,8 @@ export function SearchAutocomplete({
     return () => document.removeEventListener('mousedown', handleClickOutside)
   }, [onOpenChange])
 
-  const q = searchQuery.trim().toLowerCase()
+  const debouncedSearch = useDebounce(searchQuery, 250)
+  const q = debouncedSearch.trim().toLowerCase()
 
   const matchedDishes = q.length < 1
     ? []

@@ -132,24 +132,56 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: orderError?.message || 'Failed to place order' }, { status: 500 })
     }
 
-    // Create OrderItems
-    const orderItemsToInsert = items.map((it: any) => ({
-      id: crypto.randomUUID(),
-      orderId,
-      menuItemId: it.menuItemId || null,
-      name: it.name,
-      price: Number(it.price),
-      quantity: Number(it.quantity),
-      createdAt: now,
-      updatedAt: now,
-    }))
+    // Verify which menuItemIds actually exist in MenuItem table to prevent foreign key errors
+    const candidateIds = items
+      .map((it: any) => it.menuItemId)
+      .filter((id: any) => id && typeof id === 'string')
+
+    const validMenuItemIds = new Set<string>()
+
+    if (candidateIds.length > 0) {
+      try {
+        const { data: existingMenuItems } = await supabase
+          .from('MenuItem')
+          .select('id')
+          .in('id', candidateIds)
+
+        if (existingMenuItems) {
+          existingMenuItems.forEach((m) => validMenuItemIds.add(m.id))
+        }
+      } catch (err) {
+        console.warn('Could not verify candidate menuItemIds:', err)
+      }
+    }
+
+    // Prepare OrderItems matching the database schema
+    const orderItemsToInsert = items.map((it: any) => {
+      const isValidFk = it.menuItemId && validMenuItemIds.has(it.menuItemId)
+      return {
+        id: crypto.randomUUID(),
+        orderId,
+        menuItemId: isValidFk ? it.menuItemId : null,
+        name: String(it.name || 'Dish'),
+        price: Number(it.price || 0),
+        quantity: Math.max(1, Number(it.quantity || 1)),
+      }
+    })
 
     const { error: itemsError } = await supabase
       .from('OrderItem')
       .insert(orderItemsToInsert)
 
     if (itemsError) {
-      console.error('Error inserting order items:', itemsError)
+      console.error('Error inserting order items, trying clean fallback:', itemsError)
+      // Safe fallback: insert without any menuItemId foreign key reference
+      const cleanItems = orderItemsToInsert.map((item) => ({
+        ...item,
+        menuItemId: null,
+      }))
+      const { error: fallbackError } = await supabase.from('OrderItem').insert(cleanItems)
+      if (fallbackError) {
+        console.error('Fallback items insertion also failed:', fallbackError)
+      }
     }
 
     return NextResponse.json({

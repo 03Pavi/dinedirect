@@ -167,7 +167,7 @@ export default function HomePage() {
                     color="secondary"
                     size="large"
                     component={Link}
-                    href="/menu"
+                    href="/home"
                     startIcon={<RestaurantMenuIcon />}
                     sx={{ px: 4, py: 1.5, fontSize: '1.05rem', fontWeight: 700 }}
                   >
@@ -181,7 +181,7 @@ export default function HomePage() {
                     color="primary"
                     size="large"
                     component={Link}
-                    href="/menu"
+                    href="/home"
                     startIcon={<RestaurantMenuIcon />}
                     endIcon={<ArrowForwardIcon />}
                     sx={{
