@@ -1,9 +1,10 @@
 import type { Metadata, Viewport } from 'next'
 import StoreProvider from '@/app/providers/store-provider'
 import AppThemeProvider from '@/app/providers/theme-provider'
+import { Analytics } from "@vercel/analytics/next"
 import './globals.scss'
 
-const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://dinedirect.app'
+const appUrl = process.env.NEXT_PUBLIC_APP_URL!
 
 export const viewport: Viewport = {
   themeColor: '#E85D04',
@@ -97,6 +98,7 @@ export default function RootLayout({
     <html lang="en">
       <body suppressHydrationWarning={true}>
         <StoreProvider>
+          <Analytics/>
           <AppThemeProvider>{children}</AppThemeProvider>
         </StoreProvider>
       </body>

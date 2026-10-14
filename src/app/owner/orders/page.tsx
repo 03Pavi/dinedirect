@@ -311,7 +311,7 @@ function OwnerOrdersContent() {
     <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
       <Navbar />
 
-      <Container maxWidth="xl" sx={{ py: 3, px: { xs: 2, sm: 3 }, flexGrow: 1 }}>
+      <Container maxWidth={false} sx={{ py: 3, px: { xs: 2, sm: 3, md: 4 }, flexGrow: 1 }}>
         {/* Top Header Bar */}
         <OrderHeader
           soundEnabled={soundEnabled}

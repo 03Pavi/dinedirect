@@ -48,6 +48,7 @@ export function OrderCard({
         elevation={0}
         onClick={() => onViewDetails(order)}
         sx={{
+          flexShrink: 0,
           borderRadius: '12px',
           border: '1.5px solid #f97316',
           bgcolor: '#ffffff',
@@ -156,6 +157,7 @@ export function OrderCard({
     <Card
       elevation={0}
       sx={{
+        flexShrink: 0,
         borderRadius: '12px',
         border: '1.5px solid',
         borderColor: order.status === 'PLACED' ? '#f97316' : '#e2e8f0',
@@ -232,7 +234,7 @@ export function OrderCard({
       </Box>
 
       {/* Customer & Location Details */}
-      <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: '8px', mb: 1.5, border: '1px solid #f1f5f9' }}>
+      <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: '8px', mb: 1.5, border: '1px solid #f1f5f9', flexShrink: 0 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
           <Typography variant="body2" sx={{ fontWeight: 700, color: '#1e293b' }}>
             👤 {order.customer?.name || 'Customer'}
@@ -263,7 +265,7 @@ export function OrderCard({
       </Box>
 
       {/* Items List */}
-      <Box sx={{ mb: 1.5, flexGrow: 1 }}>
+      <Box sx={{ mb: 1.5, flexShrink: 0 }}>
         <Stack spacing={0.6}>
           {(order.items || []).map((it, idx) => (
             <Box
@@ -323,10 +325,10 @@ export function OrderCard({
         </Box>
       )}
 
-      <Divider sx={{ mb: 1.5, borderColor: '#f1f5f9' }} />
+      <Divider sx={{ mb: 1.5, borderColor: '#f1f5f9', flexShrink: 0 }} />
 
       {/* Total & Payment Mode */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5 }}>
+      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1.5, flexShrink: 0 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8 }}>
           <Chip
             size="small"
@@ -351,7 +353,7 @@ export function OrderCard({
       </Box>
 
       {/* Action Buttons: Next Status Progression */}
-      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexShrink: 0, mt: 'auto' }}>
         {order.status === 'PLACED' && (
           <>
             <Button

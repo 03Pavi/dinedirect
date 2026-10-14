@@ -114,7 +114,7 @@ export const KANBAN_COLUMNS: KanbanColumn[] = [
   },
   {
     id: 'col-preparing',
-    title: 'In Kitchen (Preparing)',
+    title: 'Preparing',
     icon: '🍳',
     statuses: ['PREPARING'],
     borderColor: '#7c3aed',

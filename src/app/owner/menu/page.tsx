@@ -117,6 +117,7 @@ export default function OwnerMenuPage() {
   const [isSubmittingItem, setIsSubmittingItem] = useState(false)
   const [isSubmittingCategory, setIsSubmittingCategory] = useState(false)
   const [togglingItemId, setTogglingItemId] = useState<string | null>(null)
+  const [initialLoading, setInitialLoading] = useState(true)
   const [snackbar, setSnackbar] = useState<{ open: boolean; message: string; severity: 'success' | 'error' }>({
     open: false,
     message: '',
@@ -131,11 +132,15 @@ export default function OwnerMenuPage() {
       } else if (!isOwner) {
         router.push('/')
       } else {
-        dispatch(fetchMyRestaurantThunk()).then((action) => {
-          if (fetchMyRestaurantThunk.fulfilled.match(action) && action.payload) {
-            dispatch(fetchMenuThunk({ restaurantId: action.payload.id }))
-          }
-        })
+        dispatch(fetchMyRestaurantThunk())
+          .then((action) => {
+            if (fetchMyRestaurantThunk.fulfilled.match(action) && action.payload) {
+              return dispatch(fetchMenuThunk({ restaurantId: action.payload.id }))
+            }
+          })
+          .finally(() => {
+            setInitialLoading(false)
+          })
       }
     }
   }, [authInitialized, isAuthenticated, isOwner, router, dispatch])
@@ -309,17 +314,140 @@ export default function OwnerMenuPage() {
     setSnackbar({ open: true, message: 'Created recommended food categories!', severity: 'success' })
   }
 
-  if (!authInitialized || (menuLoading && items.length === 0 && categories.length === 0)) {
+  if (!authInitialized || initialLoading || (menuLoading && items.length === 0)) {
     return (
-      <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
+      <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
-        <Container maxWidth="lg" sx={{ py: 5 }}>
-          <Skeleton variant="rectangular" height={100} sx={{ borderRadius: '12px', mb: 3 }} />
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 3 }}>
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} variant="rectangular" height={280} sx={{ borderRadius: '12px' }} />
-            ))}
-          </Box>
+        <Container maxWidth="lg" sx={{ py: { xs: 3, sm: 4 }, flexGrow: 1 }}>
+          <Stack spacing={3}>
+            {/* Header Skeleton with Navigation and Action Buttons */}
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: 'space-between',
+                alignItems: { xs: 'flex-start', md: 'center' },
+                gap: 2,
+              }}
+            >
+              <Box sx={{ width: '100%', maxWidth: 450 }}>
+                <Skeleton variant="text" width={120} height={20} sx={{ mb: 1, borderRadius: '4px' }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
+                  <Skeleton variant="text" width={220} height={42} sx={{ borderRadius: '6px' }} />
+                  <Skeleton variant="rounded" width={95} height={24} sx={{ borderRadius: '6px' }} />
+                </Box>
+                <Skeleton variant="text" width="85%" height={18} sx={{ borderRadius: '4px' }} />
+              </Box>
+
+              {/* Action Buttons Skeleton */}
+              <Stack direction="row" spacing={1.5} flexWrap="wrap">
+                <Skeleton variant="rounded" width={175} height={40} sx={{ borderRadius: '8px' }} />
+                <Skeleton variant="rounded" width={135} height={40} sx={{ borderRadius: '8px' }} />
+                <Skeleton variant="rounded" width={150} height={40} sx={{ borderRadius: '8px' }} />
+              </Stack>
+            </Box>
+
+            {/* 4 Stat Summary Cards Skeleton */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+                gap: 2,
+              }}
+            >
+              {[1, 2, 3, 4].map((i) => (
+                <Card
+                  key={i}
+                  elevation={0}
+                  sx={{
+                    p: 2.2,
+                    borderRadius: '14px',
+                    border: '1.5px solid #f1f5f9',
+                    bgcolor: '#ffffff',
+                  }}
+                >
+                  <Skeleton variant="text" width="55%" height={16} sx={{ mb: 1, borderRadius: '4px' }} />
+                  <Skeleton variant="text" width="35%" height={38} sx={{ borderRadius: '6px' }} />
+                </Card>
+              ))}
+            </Box>
+
+            {/* Search, Filter Bar & Tabs Skeleton */}
+            <Card
+              elevation={0}
+              sx={{
+                p: 2.5,
+                borderRadius: '16px',
+                border: '1.5px solid #f1f5f9',
+                bgcolor: '#ffffff',
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', lg: 'row' },
+                  justifyContent: 'space-between',
+                  gap: 2,
+                  mb: 2.5,
+                }}
+              >
+                <Skeleton variant="rounded" height={42} sx={{ borderRadius: '10px', width: { xs: '100%', md: 360 } }} />
+                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
+                  <Skeleton variant="rounded" width={160} height={38} sx={{ borderRadius: '8px' }} />
+                  <Skeleton variant="rounded" width={160} height={38} sx={{ borderRadius: '8px' }} />
+                </Box>
+              </Box>
+              <Box sx={{ display: 'flex', gap: 1.5 }}>
+                <Skeleton variant="rounded" width={110} height={34} sx={{ borderRadius: '20px' }} />
+                <Skeleton variant="rounded" width={120} height={34} sx={{ borderRadius: '20px' }} />
+                <Skeleton variant="rounded" width={100} height={34} sx={{ borderRadius: '20px' }} />
+              </Box>
+            </Card>
+
+            {/* Dishes Grid Skeleton */}
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+                gap: 2.5,
+              }}
+            >
+              {[1, 2, 3, 4, 5, 6].map((idx) => (
+                <Card
+                  key={idx}
+                  elevation={0}
+                  sx={{
+                    borderRadius: '16px',
+                    border: '1.5px solid #f1f5f9',
+                    bgcolor: '#ffffff',
+                    overflow: 'hidden',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    height: 380,
+                  }}
+                >
+                  <Skeleton variant="rectangular" height={190} animation="wave" sx={{ bgcolor: '#f1f5f9' }} />
+                  <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
+                    <Box>
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                        <Skeleton variant="text" width="60%" height={26} sx={{ borderRadius: '4px' }} />
+                        <Skeleton variant="rounded" width={50} height={22} sx={{ borderRadius: '12px' }} />
+                      </Box>
+                      <Skeleton variant="text" width="90%" height={16} sx={{ mb: 0.5, borderRadius: '4px' }} />
+                      <Skeleton variant="text" width="70%" height={16} sx={{ borderRadius: '4px' }} />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, borderTop: '1px solid #f8fafc' }}>
+                      <Skeleton variant="text" width={60} height={28} sx={{ borderRadius: '4px' }} />
+                      <Box sx={{ display: 'flex', gap: 1 }}>
+                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={32} height={32} />
+                      </Box>
+                    </Box>
+                  </Box>
+                </Card>
+              ))}
+            </Box>
+          </Stack>
         </Container>
       </Box>
     )
@@ -374,6 +502,7 @@ export default function OwnerMenuPage() {
               <Box>
                 <Button
                   component={Link}
+                  variant='text'
                   href="/owner/dashboard"
                   startIcon={<ArrowBackIcon />}
                   sx={{ color: '#64748b', fontSize: '0.85rem', p: 0, mb: 1, minWidth: 'auto' }}

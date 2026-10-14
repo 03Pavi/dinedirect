@@ -24,14 +24,29 @@ export function OrderKanbanBoard({
   return (
     <Box
       sx={{
-        display: 'grid',
-        gridTemplateColumns: {
-          xs: '1fr',
-          md: 'repeat(3, 1fr)',
-          lg: 'repeat(5, 1fr)',
-        },
+        display: 'flex',
         gap: 2.5,
-        alignItems: 'start',
+        overflowX: 'auto',
+        overflowY: 'hidden',
+        pb: 2.5,
+        pt: 0.5,
+        px: 0.5,
+        alignItems: 'stretch',
+        /* Custom smooth horizontal scrollbar */
+        '&::-webkit-scrollbar': {
+          height: '8px',
+        },
+        '&::-webkit-scrollbar-track': {
+          background: '#e2e8f0',
+          borderRadius: '10px',
+        },
+        '&::-webkit-scrollbar-thumb': {
+          background: '#94a3b8',
+          borderRadius: '10px',
+        },
+        '&::-webkit-scrollbar-thumb:hover': {
+          background: '#64748b',
+        },
       }}
     >
       {KANBAN_COLUMNS.map((col) => {
@@ -41,14 +56,19 @@ export function OrderKanbanBoard({
           <Box
             key={col.id}
             sx={{
-              bgcolor: '#f1f5f9',
-              borderRadius: '12px',
-              p: 1.5,
-              border: '1px solid #e2e8f0',
+              flex: '0 0 320px',
+              width: 320,
+              minWidth: 320,
+              bgcolor: '#f8fafc',
+              borderRadius: '16px',
+              p: 1.8,
+              border: '1.5px solid #e2e8f0',
               display: 'flex',
               flexDirection: 'column',
-              maxHeight: 'calc(100vh - 230px)',
-              minHeight: 480,
+              height: 'calc(100vh - 215px)',
+              maxHeight: 'calc(100vh - 215px)',
+              minHeight: 500,
+              boxShadow: '0 2px 8px rgba(0, 0, 0, 0.03)',
             }}
           >
             {/* Column Header */}
@@ -59,6 +79,7 @@ export function OrderKanbanBoard({
                 alignItems: 'center',
                 mb: 1.5,
                 px: 0.5,
+                flexShrink: 0,
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -73,7 +94,7 @@ export function OrderKanbanBoard({
                 sx={{
                   fontWeight: 800,
                   height: 22,
-                  minWidth: 26,
+                  px: 0.8,
                   bgcolor: col.bgColor,
                   color: col.borderColor,
                   border: `1px solid ${col.borderColor}`,
@@ -82,15 +103,31 @@ export function OrderKanbanBoard({
               />
             </Box>
 
-            {/* Column Orders List */}
+            {/* Column Orders List - Scrollable Vertically with Full-Height Cards */}
             <Box
               sx={{
-                flexGrow: 1,
+                flex: 1,
+                minHeight: 0,
                 overflowY: 'auto',
-                pr: 0.5,
+                overflowX: 'hidden',
+                pr: 0.8,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 1.8,
+                /* Custom smooth vertical scrollbar */
+                '&::-webkit-scrollbar': {
+                  width: '6px',
+                },
+                '&::-webkit-scrollbar-track': {
+                  background: 'transparent',
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  background: '#cbd5e1',
+                  borderRadius: '10px',
+                },
+                '&::-webkit-scrollbar-thumb:hover': {
+                  background: '#94a3b8',
+                },
               }}
             >
               {colOrders.length === 0 ? (
