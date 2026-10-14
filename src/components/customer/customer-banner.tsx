@@ -10,26 +10,26 @@ export function CustomerBanner() {
 
   const slides = [
     {
-      badge: '50% OFF',
+      badge: 'TOP RATED',
       title: 'Delicious Food, Best Meals for You',
-      subtitle: 'Order mouthwatering dishes from top-rated restaurants with instant table service & zero delivery fee.',
-      code: 'JUMBO',
+      subtitle: 'Order mouthwatering dishes from top-rated restaurants with instant table service & fast delivery.',
+      highlight: 'Freshly Prepared Daily',
       gradient: 'linear-gradient(135deg, #b91c1c 0%, #ea580c 45%, #65a30d 100%)',
       img: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?auto=format&fit=crop&w=600&q=80',
     },
     {
-      badge: 'POPULAR BRANDS',
+      badge: 'AUTHENTIC TASTE',
       title: 'Authentic Indian & Global Flavors',
-      subtitle: 'From piping hot Biryani to cheesy Woodfired Pizzas, enjoy exclusive 30% savings.',
-      code: 'WELCOME50',
+      subtitle: 'From piping hot Biryani to cheesy Woodfired Pizzas, crafted by passionate local kitchens.',
+      highlight: 'Curated Kitchen Menus',
       gradient: 'linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #ea580c 100%)',
       img: 'https://images.unsplash.com/photo-1563379091339-03b21ab4a4f8?auto=format&fit=crop&w=600&q=80',
     },
     {
-      badge: 'WEEKEND FEAST',
-      title: 'Special Combos & Chef Specials',
-      subtitle: 'Save flat ₹100 on dining combos, craft beverages, and desserts at participating venues.',
-      code: 'FEAST100',
+      badge: 'DINE-IN & TAKEAWAY',
+      title: 'Seamless Digital Ordering',
+      subtitle: 'Scan table QR codes or place takeout orders with contactless convenience and live kitchen status.',
+      highlight: 'Instant Live Updates',
       gradient: 'linear-gradient(135deg, #1e1b4b 0%, #4338ca 50%, #ea580c 100%)',
       img: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=600&q=80',
     },
@@ -83,8 +83,8 @@ export function CustomerBanner() {
               borderRadius: '6px',
             }}
           />
-          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>
-            Use code: <strong style={{ color: '#fef08a' }}>{current.code}</strong>
+          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.95)', fontWeight: 700 }}>
+            {current.highlight}
           </Typography>
         </Box>
 

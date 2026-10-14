@@ -20,6 +20,7 @@ import {
   Radio,
   FormControlLabel,
   IconButton,
+  Tooltip,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
 import ShoppingBagOutlinedIcon from '@mui/icons-material/ShoppingBagOutlined'
@@ -139,18 +140,35 @@ function CheckoutContent() {
   const finalTotal = Math.max(0, subtotal + tax - discount)
 
   const [restaurantCoupons, setRestaurantCoupons] = useState<any[]>([])
+  const [loadingCoupons, setLoadingCoupons] = useState(false)
+  const [applyingCoupon, setApplyingCoupon] = useState(false)
 
-  // Load restaurant's actual active coupons
+  const activeRestaurantId = cart.restaurantId || (cart.items[0] as any)?.restaurantId || null
+
+  // Load restaurant's exact active coupons
   useEffect(() => {
-    if (cart.restaurantId) {
+    if (activeRestaurantId) {
+      setLoadingCoupons(true)
       apiClient
-        .get<{ coupons: any[] }>(`/api/coupons/validate?restaurantId=${encodeURIComponent(cart.restaurantId)}`)
+        .get<{ coupons: any[] }>(`/api/coupons/validate?restaurantId=${encodeURIComponent(activeRestaurantId)}`)
         .then((res) => {
-          if (res?.coupons) setRestaurantCoupons(res.coupons)
+          if (res?.coupons && Array.isArray(res.coupons)) {
+            setRestaurantCoupons(res.coupons)
+          } else {
+            setRestaurantCoupons([])
+          }
         })
-        .catch(() => {})
+        .catch(() => {
+          setRestaurantCoupons([])
+        })
+        .finally(() => {
+          setLoadingCoupons(false)
+        })
+    } else {
+      setRestaurantCoupons([])
+      setLoadingCoupons(false)
     }
-  }, [cart.restaurantId])
+  }, [activeRestaurantId])
 
   const handleApplyCoupon = async (codeToApply?: string) => {
     const code = (codeToApply || couponCode).trim().toUpperCase()
@@ -161,9 +179,15 @@ function CheckoutContent() {
       return
     }
 
+    if (!activeRestaurantId) {
+      setCouponError('Restaurant details are missing from your order.')
+      return
+    }
+
+    setApplyingCoupon(true)
     try {
       const res = await apiClient.post<{ valid: boolean; discount: number; message: string }>('/api/coupons/validate', {
-        restaurantId: cart.restaurantId,
+        restaurantId: activeRestaurantId,
         code,
         subtotal,
       })
@@ -176,6 +200,8 @@ function CheckoutContent() {
       }
     } catch (err: any) {
       setCouponError(err?.message || 'Invalid or expired coupon code')
+    } finally {
+      setApplyingCoupon(false)
     }
   }
 
@@ -886,6 +912,7 @@ function CheckoutContent() {
                     <Button
                       variant="contained"
                       onClick={() => handleApplyCoupon()}
+                      disabled={applyingCoupon}
                       sx={{
                         bgcolor: '#0f172a',
                         '&:hover': { bgcolor: '#1e293b' },
@@ -895,7 +922,7 @@ function CheckoutContent() {
                         borderRadius: '8px',
                       }}
                     >
-                      Apply
+                      {applyingCoupon ? <CircularProgress size={16} color="inherit" /> : 'Apply'}
                     </Button>
                   </Box>
 
@@ -905,36 +932,52 @@ function CheckoutContent() {
                     </Typography>
                   )}
 
-                  {/* Quick coupon suggestions */}
-                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', pt: 0.5 }}>
-                    {restaurantCoupons.length > 0 ? (
-                      restaurantCoupons.slice(0, 4).map((cpn: any) => (
-                        <Chip
-                          key={cpn.id}
-                          label={`${cpn.code} (${cpn.discountType === 'PERCENTAGE' ? `${cpn.discountValue}% OFF` : `₹${cpn.discountValue} OFF`})`}
-                          clickable
-                          size="small"
-                          onClick={() => handleApplyCoupon(cpn.code)}
-                          sx={{ bgcolor: '#fff7ed', color: '#ea580c', fontWeight: 700, border: '1px dashed #ea580c' }}
-                        />
-                      ))
+                  {/* Exact restaurant coupons provided by the restaurant */}
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', pt: 0.5, alignItems: 'center' }}>
+                    {loadingCoupons ? (
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
+                        <CircularProgress size={14} sx={{ color: '#ea580c' }} />
+                        <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
+                          Fetching restaurant offers...
+                        </Typography>
+                      </Box>
+                    ) : restaurantCoupons.length > 0 ? (
+                      restaurantCoupons.map((cpn: any) => {
+                        const meetsMin = subtotal >= (cpn.minOrderAmount || 0)
+                        return (
+                          <Tooltip
+                            key={cpn.id}
+                            title={
+                              cpn.minOrderAmount > 0
+                                ? `Min order: ₹${cpn.minOrderAmount}${!meetsMin ? ` (Add ₹${cpn.minOrderAmount - subtotal} more)` : ' - Ready to apply'}`
+                                : (cpn.description || 'Click to apply')
+                            }
+                            arrow
+                          >
+                            <span>
+                              <Chip
+                                label={`${cpn.code} (${cpn.discountType === 'PERCENTAGE' ? `${cpn.discountValue}% OFF` : `₹${cpn.discountValue} OFF`})`}
+                                clickable
+                                size="small"
+                                disabled={applyingCoupon}
+                                onClick={() => handleApplyCoupon(cpn.code)}
+                                sx={{
+                                  bgcolor: meetsMin ? '#fff7ed' : '#f8fafc',
+                                  color: meetsMin ? '#ea580c' : '#94a3b8',
+                                  fontWeight: 700,
+                                  border: meetsMin ? '1px dashed #ea580c' : '1px dashed #cbd5e1',
+                                  cursor: meetsMin ? 'pointer' : 'default',
+                                  '&:hover': meetsMin ? { bgcolor: '#ffedd5' } : {},
+                                }}
+                              />
+                            </span>
+                          </Tooltip>
+                        )
+                      })
                     ) : (
-                      <>
-                        <Chip
-                          label="WELCOME50 (Flat Rs 50 OFF)"
-                          clickable
-                          size="small"
-                          onClick={() => handleApplyCoupon('WELCOME50')}
-                          sx={{ bgcolor: '#fff7ed', color: '#ea580c', fontWeight: 700, border: '1px dashed #ea580c' }}
-                        />
-                        <Chip
-                          label="FEAST20 (20% OFF)"
-                          clickable
-                          size="small"
-                          onClick={() => handleApplyCoupon('FEAST20')}
-                          sx={{ bgcolor: '#fff7ed', color: '#ea580c', fontWeight: 700, border: '1px dashed #ea580c' }}
-                        />
-                      </>
+                      <Typography variant="caption" sx={{ color: '#94a3b8', fontStyle: 'italic', fontWeight: 500 }}>
+                        No offers available for this restaurant
+                      </Typography>
                     )}
                   </Box>
                 </Stack>

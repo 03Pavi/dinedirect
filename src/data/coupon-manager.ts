@@ -17,8 +17,7 @@ export interface RestaurantCoupon {
 }
 
 /**
- * Fetch all coupons for a given restaurant from Supabase.
- * If restaurant has no coupons, automatically seeds starter offers.
+ * Fetch exact coupons created for a given restaurant from Supabase.
  */
 export async function getRestaurantCoupons(restaurantId: string): Promise<RestaurantCoupon[]> {
   try {
@@ -33,64 +32,7 @@ export async function getRestaurantCoupons(restaurantId: string): Promise<Restau
       return []
     }
 
-    if (data && data.length > 0) {
-      return data as RestaurantCoupon[]
-    }
-
-    // Auto-seed initial starter coupons if restaurant has no coupons yet
-    const defaultCoupons: Omit<RestaurantCoupon, 'createdAt' | 'updatedAt'>[] = [
-      {
-        id: `cpn-${restaurantId}-1`,
-        restaurantId,
-        code: 'WELCOME50',
-        description: 'Flat ₹50 OFF for all new dining customers',
-        discountType: 'FLAT',
-        discountValue: 50,
-        minOrderAmount: 199,
-        maxDiscount: 50,
-        isActive: true,
-        usageCount: 18,
-        expiresAt: null,
-      },
-      {
-        id: `cpn-${restaurantId}-2`,
-        restaurantId,
-        code: 'FEAST20',
-        description: 'Get 20% OFF on all large feast orders above ₹400',
-        discountType: 'PERCENTAGE',
-        discountValue: 20,
-        minOrderAmount: 400,
-        maxDiscount: 150,
-        isActive: true,
-        usageCount: 34,
-        expiresAt: null,
-      },
-      {
-        id: `cpn-${restaurantId}-3`,
-        restaurantId,
-        code: 'WEEKEND100',
-        description: 'Flat ₹100 OFF on weekend family dinners above ₹800',
-        discountType: 'FLAT',
-        discountValue: 100,
-        minOrderAmount: 800,
-        maxDiscount: 100,
-        isActive: true,
-        usageCount: 12,
-        expiresAt: null,
-      },
-    ]
-
-    const { data: inserted, error: insertError } = await supabase
-      .from('Coupon')
-      .insert(defaultCoupons)
-      .select()
-
-    if (insertError) {
-      console.warn('Could not auto-seed starter coupons in Supabase:', insertError.message)
-      return []
-    }
-
-    return (inserted as RestaurantCoupon[]) || []
+    return (data as RestaurantCoupon[]) || []
   } catch (err) {
     console.error('Unexpected error in getRestaurantCoupons:', err)
     return []

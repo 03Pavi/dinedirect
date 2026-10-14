@@ -17,6 +17,7 @@ import {
   DialogContent,
   DialogActions,
   Alert,
+  CircularProgress,
 } from '@mui/material'
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
@@ -26,6 +27,7 @@ import RestaurantIcon from '@mui/icons-material/Restaurant'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { apiClient } from '@/utils/api-client'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
 import { updateQuantity, removeItem, clearCart } from '@/store/slices/cart-slice'
 import { CartItem } from '@/types/order-types'
@@ -53,7 +55,9 @@ export function CustomerCartPanel({ onCloseMobile }: CustomerCartPanelProps) {
     }
   }
 
-  const handleApplyCoupon = () => {
+  const [validatingCoupon, setValidatingCoupon] = useState(false)
+
+  const handleApplyCoupon = async () => {
     setCouponError(null)
     const code = couponCode.trim().toUpperCase()
     if (!code) {
@@ -61,13 +65,30 @@ export function CustomerCartPanel({ onCloseMobile }: CustomerCartPanelProps) {
       return
     }
 
-    if (code === 'WELCOME50' || code === 'JUMBO' || code === 'FEAST20' || code === 'A2BSUPER') {
-      const discount = code === 'WELCOME50' ? Math.min(cart.subtotal * 0.5, 150) : 50
-      setAppliedCoupon(code)
-      setDiscountAmount(discount)
-      setCouponCode('')
-    } else {
-      setCouponError('Invalid code. Try "WELCOME50" or "JUMBO"')
+    if (!cart.restaurantId) {
+      setCouponError('Please select items from a restaurant first')
+      return
+    }
+
+    try {
+      setValidatingCoupon(true)
+      const res = await apiClient.post<{ valid: boolean; discount: number; message: string }>('/api/coupons/validate', {
+        restaurantId: cart.restaurantId,
+        code,
+        subtotal: cart.subtotal,
+      })
+
+      if (res?.valid) {
+        setAppliedCoupon(code)
+        setDiscountAmount(res.discount)
+        setCouponCode('')
+      } else {
+        setCouponError(res?.message || 'Invalid coupon code for this restaurant')
+      }
+    } catch (err: any) {
+      setCouponError(err?.message || 'Invalid or expired coupon code')
+    } finally {
+      setValidatingCoupon(false)
     }
   }
 
@@ -386,7 +407,14 @@ export function CustomerCartPanel({ onCloseMobile }: CustomerCartPanelProps) {
               <Button
                 variant="contained"
                 onClick={handleApplyCoupon}
-                startIcon={<LocalOfferIcon sx={{ fontSize: 15 }} />}
+                disabled={validatingCoupon}
+                startIcon={
+                  validatingCoupon ? (
+                    <CircularProgress size={14} color="inherit" />
+                  ) : (
+                    <LocalOfferIcon sx={{ fontSize: 15 }} />
+                  )
+                }
                 sx={{
                   bgcolor: '#ea580c',
                   color: '#ffffff',
@@ -401,7 +429,7 @@ export function CustomerCartPanel({ onCloseMobile }: CustomerCartPanelProps) {
                   '&:hover': { bgcolor: '#c2410c' },
                 }}
               >
-                Add Coupon
+                {validatingCoupon ? 'Checking...' : 'Add Coupon'}
               </Button>
             </Box>
           )}

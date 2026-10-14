@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, Suspense } from 'react'
+import React, { useState, useEffect, Suspense } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   Box,
@@ -21,86 +21,60 @@ import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import ShoppingBagIcon from '@mui/icons-material/ShoppingBag'
 import AccessTimeIcon from '@mui/icons-material/AccessTime'
 import ArrowForwardIcon from '@mui/icons-material/ArrowForward'
+import StorefrontIcon from '@mui/icons-material/Storefront'
 import { CustomerSidebar } from '@/components/customer/customer-sidebar'
 import { CustomerHeader } from '@/components/customer/customer-header'
 import { CartSidebar } from '@/components/customer/cart-sidebar'
 
 import { useAppSelector } from '@/store/hooks'
 import { useHistoryModal } from '@/hooks/use-history-modal'
+import { apiClient } from '@/utils/api-client'
 
-interface OfferDeal {
+interface LiveCoupon {
+  id: string
+  restaurantId: string
   code: string
-  title: string
-  description: string
-  minOrder: number
+  description?: string
+  discountType: 'PERCENTAGE' | 'FLAT'
+  discountValue: number
+  minOrderAmount: number
   maxDiscount?: number
-  discountLabel: string
-  tag: string
-  expiry: string
-  color: string
+  expiresAt?: string | null
+  restaurant?: {
+    id: string
+    name: string
+    imageUrl?: string
+    city?: string
+  }
 }
-
-const DEALS: OfferDeal[] = [
-  {
-    code: 'WELCOME50',
-    title: 'First Order Special',
-    description: 'Get flat ₹50 OFF on your first dining or delivery order across all restaurants.',
-    minOrder: 199,
-    discountLabel: '₹50 OFF',
-    tag: 'NEW USER',
-    expiry: 'Valid till month end',
-    color: '#ea580c',
-  },
-  {
-    code: 'FEAST20',
-    title: 'Mega Feast Discount',
-    description: 'Enjoy 20% OFF on gourmet combos, thalis, and party orders.',
-    minOrder: 399,
-    maxDiscount: 120,
-    discountLabel: '20% OFF',
-    tag: 'POPULAR',
-    expiry: 'Expires in 5 days',
-    color: '#0284c7',
-  },
-  {
-    code: 'FREEDEL',
-    title: 'Zero Delivery Fee',
-    description: 'Free doorstep delivery from your favorite neighborhood kitchens.',
-    minOrder: 249,
-    discountLabel: 'FREE DELIVERY',
-    tag: 'DELIVERY',
-    expiry: 'Valid today only',
-    color: '#16a34a',
-  },
-  {
-    code: 'WEEKEND30',
-    title: 'Weekend Binge Treat',
-    description: 'Flat 30% discount on all dine-in and online orders placed on weekends.',
-    minOrder: 499,
-    maxDiscount: 150,
-    discountLabel: '30% OFF',
-    tag: 'WEEKEND',
-    expiry: 'Fri, Sat, Sun',
-    color: '#9333ea',
-  },
-  {
-    code: 'SWEETTREAT',
-    title: 'Complimentary Sweet / Beverage',
-    description: 'Get free dessert with any chef special order above ₹349.',
-    minOrder: 349,
-    discountLabel: 'FREE DESSERT',
-    tag: 'DINE-IN',
-    expiry: 'Valid all week',
-    color: '#e11d48',
-  },
-]
 
 function OffersContent() {
   const router = useRouter()
   const cart = useAppSelector((state) => state.cart)
 
+  const [coupons, setCoupons] = useState<LiveCoupon[]>([])
+  const [loading, setLoading] = useState(true)
   const [copiedCode, setCopiedCode] = useState<string | null>(null)
   const [toastOpen, setToastOpen] = useState(false)
+
+  useEffect(() => {
+    setLoading(true)
+    apiClient
+      .get<{ coupons: LiveCoupon[] }>('/api/coupons')
+      .then((res) => {
+        if (res?.coupons && Array.isArray(res.coupons)) {
+          setCoupons(res.coupons)
+        } else {
+          setCoupons([])
+        }
+      })
+      .catch(() => {
+        setCoupons([])
+      })
+      .finally(() => {
+        setLoading(false)
+      })
+  }, [])
 
   // Responsive Drawer States
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
@@ -206,111 +180,206 @@ function OffersContent() {
 
           {/* Deals Grid */}
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
-            Available Coupons ({DEALS.length})
+            Available Restaurant Offers ({loading ? '...' : coupons.length})
           </Typography>
 
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
-              gap: 3,
-            }}
-          >
-            {DEALS.map((deal) => (
-                <Card
-                  elevation={0}
-                  sx={{
-                    p: 3,
-                    borderRadius: '18px',
-                    border: '1.5px dashed #cbd5e1',
-                    bgcolor: '#ffffff',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    height: '100%',
-                    position: 'relative',
-                    transition: 'all 0.2s ease',
-                    '&:hover': {
-                      borderColor: deal.color,
-                      transform: 'translateY(-3px)',
-                      boxShadow: '0 12px 24px -8px rgba(0,0,0,0.08)',
-                    },
-                  }}
-                >
-                  <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-                      <Chip
-                        label={deal.tag}
-                        size="small"
-                        sx={{
-                          bgcolor: `${deal.color}15`,
-                          color: deal.color,
-                          fontWeight: 800,
-                          fontSize: '0.72rem',
-                          borderRadius: '6px',
-                        }}
-                      />
-                      <Typography variant="caption" sx={{ color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                        <AccessTimeIcon sx={{ fontSize: 13 }} />
-                        {deal.expiry}
-                      </Typography>
-                    </Box>
+          {loading ? (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                gap: 3,
+              }}
+            >
+              {[1, 2, 3, 4].map((n) => (
+                <Skeleton
+                  key={n}
+                  variant="rounded"
+                  height={180}
+                  sx={{ borderRadius: '18px', bgcolor: '#f1f5f9' }}
+                />
+              ))}
+            </Box>
+          ) : coupons.length === 0 ? (
+            <Card
+              elevation={0}
+              sx={{
+                p: { xs: 4, sm: 6 },
+                textAlign: 'center',
+                borderRadius: '20px',
+                border: '1.5px dashed #e2e8f0',
+                bgcolor: '#ffffff',
+                maxWidth: 600,
+                mx: 'auto',
+                mt: 4,
+              }}
+            >
+              <Box
+                sx={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: '16px',
+                  bgcolor: '#fff7ed',
+                  color: '#ea580c',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  mx: 'auto',
+                  mb: 2,
+                }}
+              >
+                <LocalOfferIcon sx={{ fontSize: 32 }} />
+              </Box>
+              <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1 }}>
+                No Active Offers Available
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#64748b', mb: 3, lineHeight: 1.6 }}>
+                Restaurant owners create exclusive discount coupons and dining promotions from their Owner Dashboard. Check back soon for fresh deals!
+              </Typography>
+              <Button
+                variant="contained"
+                onClick={() => router.push('/home')}
+                startIcon={<StorefrontIcon />}
+                sx={{
+                  bgcolor: '#ea580c',
+                  '&:hover': { bgcolor: '#c2410c' },
+                  fontWeight: 700,
+                  textTransform: 'none',
+                  px: 3,
+                  py: 1,
+                  borderRadius: '10px',
+                }}
+              >
+                Browse Menus
+              </Button>
+            </Card>
+          ) : (
+            <Box
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)' },
+                gap: 3,
+              }}
+            >
+              {coupons.map((coupon) => {
+                const discountLabel =
+                  coupon.discountType === 'PERCENTAGE'
+                    ? `${coupon.discountValue}% OFF`
+                    : `₹${coupon.discountValue} OFF`
 
-                    <Typography variant="h5" sx={{ fontWeight: 800, color: deal.color, mb: 0.5 }}>
-                      {deal.discountLabel}
-                    </Typography>
+                const expiryText = coupon.expiresAt
+                  ? `Valid till ${new Date(coupon.expiresAt).toLocaleDateString()}`
+                  : 'Active offer'
 
-                    <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-                      {deal.title}
-                    </Typography>
-
-                    <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.86rem', mb: 2, lineHeight: 1.4 }}>
-                      {deal.description}
-                    </Typography>
-                  </Box>
-
-                  {/* Coupon Code Pill & Copy Button */}
-                  <Box
+                return (
+                  <Card
+                    key={coupon.id}
+                    elevation={0}
                     sx={{
+                      p: 3,
+                      borderRadius: '18px',
+                      border: '1.5px dashed #cbd5e1',
+                      bgcolor: '#ffffff',
                       display: 'flex',
-                      alignItems: 'center',
+                      flexDirection: 'column',
                       justifyContent: 'space-between',
-                      bgcolor: '#f8fafc',
-                      p: 1.2,
-                      borderRadius: '12px',
-                      border: '1px solid #e2e8f0',
+                      height: '100%',
+                      position: 'relative',
+                      transition: 'all 0.2s ease',
+                      '&:hover': {
+                        borderColor: '#ea580c',
+                        transform: 'translateY(-3px)',
+                        boxShadow: '0 12px 24px -8px rgba(0,0,0,0.08)',
+                      },
                     }}
                   >
-                    <Box sx={{ pl: 0.5 }}>
-                      <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600, display: 'block', lineHeight: 1 }}>
-                        CODE
+                    <Box>
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
+                        <Chip
+                          icon={coupon.restaurant?.name ? <StorefrontIcon sx={{ fontSize: '14px !important' }} /> : undefined}
+                          label={coupon.restaurant?.name || 'RESTAURANT OFFER'}
+                          size="small"
+                          sx={{
+                            bgcolor: '#fff7ed',
+                            color: '#ea580c',
+                            fontWeight: 800,
+                            fontSize: '0.72rem',
+                            borderRadius: '6px',
+                          }}
+                        />
+                        <Typography
+                          variant="caption"
+                          sx={{ color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 0.5 }}
+                        >
+                          <AccessTimeIcon sx={{ fontSize: 13 }} />
+                          {expiryText}
+                        </Typography>
+                      </Box>
+
+                      <Typography variant="h5" sx={{ fontWeight: 800, color: '#ea580c', mb: 0.5 }}>
+                        {discountLabel}
                       </Typography>
-                      <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '0.04em' }}>
-                        {deal.code}
+
+                      <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
+                        {coupon.code}
                       </Typography>
+
+                      <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.86rem', mb: 1.5, lineHeight: 1.4 }}>
+                        {coupon.description || `Get ${discountLabel} on your dining order.`}
+                      </Typography>
+
+                      {coupon.minOrderAmount > 0 && (
+                        <Typography variant="caption" sx={{ color: '#0284c7', fontWeight: 600, display: 'block', mb: 2 }}>
+                          Min order: ₹{coupon.minOrderAmount}
+                          {coupon.maxDiscount ? ` • Max savings: ₹${coupon.maxDiscount}` : ''}
+                        </Typography>
+                      )}
                     </Box>
 
-                    <Button
-                      size="small"
-                      onClick={() => handleCopyCode(deal.code)}
-                      startIcon={copiedCode === deal.code ? <CheckCircleIcon /> : <ContentCopyIcon />}
+                    {/* Coupon Code Pill & Copy Button */}
+                    <Box
                       sx={{
-                        borderRadius: '8px',
-                        fontWeight: 700,
-                        textTransform: 'none',
-                        bgcolor: copiedCode === deal.code ? '#dcfce7' : '#ffffff',
-                        color: copiedCode === deal.code ? '#15803d' : '#ea580c',
-                        border: '1px solid',
-                        borderColor: copiedCode === deal.code ? '#86efac' : '#fed7aa',
-                        '&:hover': { bgcolor: '#fff7ed' },
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        bgcolor: '#f8fafc',
+                        p: 1.2,
+                        borderRadius: '12px',
+                        border: '1px solid #e2e8f0',
                       }}
                     >
-                      {copiedCode === deal.code ? 'Copied!' : 'Copy Code'}
-                    </Button>
-                  </Box>
-                </Card>
-            ))}
-          </Box>
+                      <Box sx={{ pl: 0.5 }}>
+                        <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600, display: 'block', lineHeight: 1 }}>
+                          PROMO CODE
+                        </Typography>
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', letterSpacing: '0.04em' }}>
+                          {coupon.code}
+                        </Typography>
+                      </Box>
+
+                      <Button
+                        size="small"
+                        onClick={() => handleCopyCode(coupon.code)}
+                        startIcon={copiedCode === coupon.code ? <CheckCircleIcon /> : <ContentCopyIcon />}
+                        sx={{
+                          borderRadius: '8px',
+                          fontWeight: 700,
+                          textTransform: 'none',
+                          bgcolor: copiedCode === coupon.code ? '#dcfce7' : '#ffffff',
+                          color: copiedCode === coupon.code ? '#15803d' : '#ea580c',
+                          border: '1px solid',
+                          borderColor: copiedCode === coupon.code ? '#86efac' : '#fed7aa',
+                          '&:hover': { bgcolor: '#fff7ed' },
+                        }}
+                      >
+                        {copiedCode === coupon.code ? 'Copied!' : 'Copy Code'}
+                      </Button>
+                    </Box>
+                  </Card>
+                )
+              })}
+            </Box>
+          )}
         </Box>
       </Box>
 

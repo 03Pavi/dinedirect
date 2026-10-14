@@ -11,17 +11,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (!restaurantId) {
-      // Fallback global check
-      const upper = code.trim().toUpperCase()
-      if (upper === 'WELCOME50') {
-        const discount = Math.min(50, Number(subtotal || 0))
-        return NextResponse.json({ valid: true, discount, message: 'Flat ₹50 OFF applied!' })
-      }
-      if (upper === 'FEAST20') {
-        const discount = Math.round(Number(subtotal || 0) * 0.2)
-        return NextResponse.json({ valid: true, discount, message: '20% OFF applied!' })
-      }
-      return NextResponse.json({ valid: false, message: 'Invalid coupon code.' }, { status: 400 })
+      return NextResponse.json({ valid: false, message: 'Restaurant ID is required to validate coupons.' }, { status: 400 })
     }
 
     const result = await validateCoupon(restaurantId, code, Number(subtotal || 0))
