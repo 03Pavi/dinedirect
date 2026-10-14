@@ -52,6 +52,119 @@ import {
   OrderCounts,
 } from '@/components/owner/orders'
 
+function LiveOrdersSkeleton() {
+  return (
+    <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
+      <Navbar />
+      <Container maxWidth={false} sx={{ py: 3, px: { xs: 2, sm: 3, md: 4 }, flexGrow: 1 }}>
+        {/* Top Header Skeleton */}
+        <Box sx={{ mb: 3 }}>
+          <Skeleton variant="text" width={140} height={24} sx={{ mb: 1, borderRadius: '4px' }} />
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Skeleton variant="text" width={220} height={38} sx={{ borderRadius: '6px' }} />
+              <Skeleton variant="rounded" width={80} height={26} sx={{ borderRadius: '20px' }} />
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
+              <Skeleton variant="rounded" width={90} height={36} sx={{ borderRadius: '20px' }} />
+              <Skeleton variant="rounded" width={130} height={36} sx={{ borderRadius: '20px' }} />
+              <Skeleton variant="circular" width={36} height={36} />
+              <Skeleton variant="rounded" width={140} height={36} sx={{ borderRadius: '10px' }} />
+            </Box>
+          </Box>
+        </Box>
+
+        {/* Metrics Filter Bar Skeleton */}
+        <Box sx={{ display: 'flex', gap: 1.5, mb: 3, overflowX: 'auto', pb: 1 }}>
+          {[1, 2, 3, 4, 5, 6].map((i) => (
+            <Skeleton key={i} variant="rounded" width={110} height={38} sx={{ borderRadius: '24px', flexShrink: 0 }} />
+          ))}
+        </Box>
+
+        {/* Kanban Board Columns Skeleton */}
+        <Box sx={{ display: 'flex', gap: 2.5, overflowX: 'auto', pb: 2.5, alignItems: 'stretch' }}>
+          {[1, 2, 3, 4, 5].map((colIndex) => (
+            <Box
+              key={colIndex}
+              sx={{
+                flex: '0 0 320px',
+                width: 320,
+                minWidth: 320,
+                bgcolor: '#f8fafc',
+                borderRadius: '16px',
+                p: 1.8,
+                border: '1.5px solid #e2e8f0',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 1.8,
+                height: 'calc(100vh - 215px)',
+                maxHeight: 'calc(100vh - 215px)',
+                minHeight: 500,
+              }}
+            >
+              {/* Column Header Skeleton */}
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 0.5, mb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Skeleton variant="circular" width={22} height={22} />
+                  <Skeleton variant="text" width={120} height={24} sx={{ borderRadius: '4px' }} />
+                </Box>
+                <Skeleton variant="rounded" width={32} height={22} sx={{ borderRadius: '12px' }} />
+              </Box>
+
+              {/* Order Card Skeletons */}
+              {[1, 2].map((cardIndex) => (
+                <Box
+                  key={cardIndex}
+                  sx={{
+                    borderRadius: '12px',
+                    border: '1.5px solid #e2e8f0',
+                    bgcolor: '#ffffff',
+                    p: 2.2,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 1.5,
+                  }}
+                >
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <Skeleton variant="text" width={110} height={22} sx={{ borderRadius: '4px' }} />
+                    <Skeleton variant="rounded" width={75} height={24} sx={{ borderRadius: '6px' }} />
+                  </Box>
+
+                  <Box sx={{ bgcolor: '#f8fafc', p: 1.2, borderRadius: '8px', border: '1px solid #f1f5f9' }}>
+                    <Skeleton variant="text" width="60%" height={18} sx={{ mb: 0.5 }} />
+                    <Skeleton variant="text" width="85%" height={16} />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.8 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Skeleton variant="text" width="55%" height={18} />
+                      <Skeleton variant="text" width="20%" height={18} />
+                    </Box>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <Skeleton variant="text" width="45%" height={18} />
+                      <Skeleton variant="text" width="20%" height={18} />
+                    </Box>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 0.5 }}>
+                    <Skeleton variant="rounded" width={60} height={20} sx={{ borderRadius: '4px' }} />
+                    <Skeleton variant="text" width={70} height={24} />
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1, pt: 0.5 }}>
+                    <Skeleton variant="rounded" width="100%" height={36} sx={{ borderRadius: '8px' }} />
+                    <Skeleton variant="rounded" width={36} height={36} sx={{ borderRadius: '8px' }} />
+                  </Box>
+                </Box>
+              ))}
+            </Box>
+          ))}
+        </Box>
+      </Container>
+    </Box>
+  )
+}
+
 function OwnerOrdersContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -73,17 +186,21 @@ function OwnerOrdersContent() {
   const [autoRefresh, setAutoRefresh] = useState(true)
   const [soundEnabled, setSoundEnabled] = useState(true)
   const [isRefreshing, setIsRefreshing] = useState(false)
+  const [initialLoading, setInitialLoading] = useState(true)
 
   // Selected Order for KOT / Receipt Modal
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
 
-  // Auto-open modal when navigating from notification
+  // Auto-open modal ONLY ONCE when navigating from notification
+  const hasHandledOpenOrderRef = useRef<string | null>(null)
+
   useEffect(() => {
-    if (openOrderId && orders.length > 0) {
+    if (openOrderId && orders.length > 0 && hasHandledOpenOrderRef.current !== openOrderId) {
       const match = orders.find(
         (o) => o.id === openOrderId || o.id.toLowerCase().endsWith(openOrderId.toLowerCase())
       )
       if (match) {
+        hasHandledOpenOrderRef.current = openOrderId
         setSelectedOrder(match)
       }
     }
@@ -134,11 +251,15 @@ function OwnerOrdersContent() {
       } else if (!isOwner) {
         router.push('/')
       } else {
-        dispatch(fetchMyRestaurantThunk()).then((action) => {
-          if (fetchMyRestaurantThunk.fulfilled.match(action) && action.payload) {
-            dispatch(fetchOrdersThunk({ restaurantId: action.payload.id }))
-          }
-        })
+        dispatch(fetchMyRestaurantThunk())
+          .then((action) => {
+            if (fetchMyRestaurantThunk.fulfilled.match(action) && action.payload) {
+              return dispatch(fetchOrdersThunk({ restaurantId: action.payload.id }))
+            }
+          })
+          .finally(() => {
+            setInitialLoading(false)
+          })
       }
     }
   }, [authInitialized, isAuthenticated, isOwner, router, dispatch])
@@ -203,7 +324,7 @@ function OwnerOrdersContent() {
         severity: 'success',
       })
       if (selectedOrder && selectedOrder.id === orderId) {
-        setSelectedOrder({ ...selectedOrder, status: nextStatus })
+        setSelectedOrder(null)
       }
     } else {
       setSnackbar({
@@ -291,20 +412,8 @@ function OwnerOrdersContent() {
     }
   }, [orders])
 
-  if (!authInitialized || (loading && orders.length === 0)) {
-    return (
-      <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
-        <Navbar />
-        <Container maxWidth="xl" sx={{ py: 4 }}>
-          <Skeleton variant="rectangular" height={100} sx={{ borderRadius: '12px', mb: 3 }} />
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' }, gap: 2 }}>
-            {[1, 2, 3, 4].map((i) => (
-              <Skeleton key={i} variant="rectangular" height={320} sx={{ borderRadius: '12px' }} />
-            ))}
-          </Box>
-        </Container>
-      </Box>
-    )
+  if (!authInitialized || initialLoading || (loading && orders.length === 0)) {
+    return <LiveOrdersSkeleton />
   }
 
   return (
@@ -576,13 +685,7 @@ function OwnerOrdersContent() {
 
 export default function OwnerOrdersPage() {
   return (
-    <Suspense
-      fallback={
-        <Box sx={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <CircularProgress sx={{ color: '#ea580c' }} />
-        </Box>
-      }
-    >
+    <Suspense fallback={<LiveOrdersSkeleton />}>
       <OwnerOrdersContent />
     </Suspense>
   )

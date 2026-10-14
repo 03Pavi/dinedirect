@@ -60,7 +60,10 @@ export function OrderStatusMenu({
         return (
           <MenuItem
             key={status}
-            onClick={() => onSelectStatus(status)}
+            onClick={(e) => {
+              e.stopPropagation()
+              onSelectStatus(status)
+            }}
             sx={{
               fontSize: '0.85rem',
               fontWeight: isCurrent ? 700 : 500,

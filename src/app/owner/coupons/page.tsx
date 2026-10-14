@@ -26,8 +26,11 @@ import {
   CircularProgress,
   Tooltip,
   Paper,
+  useTheme,
+  useMediaQuery,
 } from '@mui/material'
 import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import CloseIcon from '@mui/icons-material/Close'
 import AddIcon from '@mui/icons-material/Add'
 import LocalOfferIcon from '@mui/icons-material/LocalOffer'
 import DeleteOutlineIcon from '@mui/icons-material/DeleteOutline'
@@ -41,6 +44,7 @@ import StorefrontIcon from '@mui/icons-material/Storefront'
 
 import Navbar from '@/components/common/navbar'
 import { useAppSelector } from '@/store/hooks'
+import { useHistoryModal } from '@/hooks/use-history-modal'
 import {
   selectCurrentUser,
   selectIsAuthenticated,
@@ -56,12 +60,20 @@ export default function OwnerCouponsPage() {
   const isAuthenticated = useAppSelector(selectIsAuthenticated)
   const isOwner = useAppSelector(selectIsOwner)
   const authInitialized = useAppSelector(selectAuthInitialized)
+  const theme = useTheme()
+  const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
 
   const [coupons, setCoupons] = useState<RestaurantCoupon[]>([])
   const [restaurantName, setRestaurantName] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [createModalOpen, setCreateModalOpen] = useState(false)
   const [submitting, setSubmitting] = useState(false)
+
+  const { handleClose: handleSafeClose } = useHistoryModal({
+    open: createModalOpen,
+    onClose: () => setCreateModalOpen(false),
+    modalId: 'create-coupon-dialog',
+  })
 
   // Form State
   const [code, setCode] = useState('')
@@ -557,21 +569,90 @@ export default function OwnerCouponsPage() {
         )}
       </Container>
 
-      {/* Create Coupon Modal */}
+      {/* Create Coupon Modal (Desktop Popup / Mobile Fullscreen) */}
       <Dialog
         open={createModalOpen}
-        onClose={() => setCreateModalOpen(false)}
+        onClose={submitting ? undefined : handleSafeClose}
+        fullScreen={isMobile}
         maxWidth="sm"
         fullWidth
-        PaperProps={{ sx: { borderRadius: '24px', p: 1 } }}
+        PaperProps={{
+          sx: {
+            borderRadius: isMobile ? 0 : '24px',
+            p: isMobile ? 0 : 1,
+            m: isMobile ? 0 : undefined,
+            bgcolor: '#ffffff',
+            display: 'flex',
+            flexDirection: 'column',
+            maxHeight: isMobile ? '100vh' : '90vh',
+            overflow: 'hidden',
+          },
+        }}
       >
-        <DialogTitle sx={{ fontWeight: 900, color: '#0f172a', display: 'flex', alignItems: 'center', gap: 1.5 }}>
-          <LocalOfferIcon sx={{ color: '#ea580c' }} />
-          Create New Offer / Coupon
+        <DialogTitle
+          sx={{
+            fontWeight: 900,
+            color: '#0f172a',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            p: isMobile ? 2 : 2.5,
+            borderBottom: isMobile ? '1px solid #f1f5f9' : undefined,
+            bgcolor: isMobile ? '#fafafa' : 'transparent',
+          }}
+        >
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            {isMobile ? (
+              <IconButton onClick={handleSafeClose} disabled={submitting} edge="start" size="small">
+                <ArrowBackIcon sx={{ color: '#0f172a' }} />
+              </IconButton>
+            ) : (
+              <Box
+                sx={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: '10px',
+                  bgcolor: '#fff7ed',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#ea580c',
+                }}
+              >
+                <LocalOfferIcon fontSize="small" />
+              </Box>
+            )}
+            <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', fontSize: isMobile ? '1.05rem' : '1.25rem' }}>
+              Create New Offer / Coupon
+            </Typography>
+          </Box>
+
+          {!isMobile && (
+            <IconButton onClick={handleSafeClose} disabled={submitting} size="small">
+              <CloseIcon />
+            </IconButton>
+          )}
         </DialogTitle>
 
-        <Box component="form" onSubmit={handleCreateCoupon}>
-          <DialogContent dividers>
+        <Box
+          component="form"
+          onSubmit={handleCreateCoupon}
+          sx={{
+            display: 'flex',
+            flexDirection: 'column',
+            flexGrow: 1,
+            overflow: 'hidden',
+          }}
+        >
+          <DialogContent
+            dividers
+            sx={{
+              p: isMobile ? 2.5 : 3,
+              flexGrow: 1,
+              overflowY: 'auto',
+              bgcolor: '#ffffff',
+            }}
+          >
             {formError && (
               <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }} onClose={() => setFormError('')}>
                 {formError}
@@ -581,7 +662,7 @@ export default function OwnerCouponsPage() {
             <Stack spacing={2.5}>
               <Box>
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', mb: 0.5, display: 'block' }}>
-                  Coupon Code (e.g. WELCOME50)
+                  Coupon Code (e.g. WELCOME50) *
                 </Typography>
                 <TextField
                   fullWidth
@@ -590,8 +671,9 @@ export default function OwnerCouponsPage() {
                   value={code}
                   onChange={(e) => setCode(e.target.value.toUpperCase())}
                   required
+                  InputProps={{ sx: { borderRadius: '10px' } }}
                 />
-                <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1, mt: 1, flexWrap: 'wrap' }}>
                   {['WELCOME50', 'FEAST20', 'FLAT100', 'SUPER25'].map((sug) => (
                     <Chip
                       key={sug}
@@ -615,6 +697,7 @@ export default function OwnerCouponsPage() {
                   placeholder="e.g. Get 20% OFF on all dinner orders above ₹400"
                   value={description}
                   onChange={(e) => setDescription(e.target.value)}
+                  InputProps={{ sx: { borderRadius: '10px' } }}
                 />
               </Box>
 
@@ -645,7 +728,7 @@ export default function OwnerCouponsPage() {
               <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 2 }}>
                 <Box>
                   <Typography variant="caption" sx={{ fontWeight: 800, color: '#475569', mb: 0.5, display: 'block' }}>
-                    {discountType === 'PERCENTAGE' ? 'Discount Percentage (%)' : 'Discount Amount (₹)'}
+                    {discountType === 'PERCENTAGE' ? 'Discount Percentage (%) *' : 'Discount Amount (₹) *'}
                   </Typography>
                   <TextField
                     fullWidth
@@ -655,6 +738,7 @@ export default function OwnerCouponsPage() {
                     value={discountValue}
                     onChange={(e) => setDiscountValue(e.target.value)}
                     required
+                    InputProps={{ sx: { borderRadius: '10px' } }}
                   />
                 </Box>
 
@@ -669,6 +753,7 @@ export default function OwnerCouponsPage() {
                     placeholder="e.g. 199"
                     value={minOrderAmount}
                     onChange={(e) => setMinOrderAmount(e.target.value)}
+                    InputProps={{ sx: { borderRadius: '10px' } }}
                   />
                 </Box>
               </Box>
@@ -685,14 +770,27 @@ export default function OwnerCouponsPage() {
                     placeholder="e.g. 150"
                     value={maxDiscount}
                     onChange={(e) => setMaxDiscount(e.target.value)}
+                    InputProps={{ sx: { borderRadius: '10px' } }}
                   />
                 </Box>
               )}
             </Stack>
           </DialogContent>
 
-          <DialogActions sx={{ p: 2.5 }}>
-            <Button onClick={() => setCreateModalOpen(false)} sx={{ fontWeight: 700, color: '#64748b' }}>
+          <DialogActions
+            sx={{
+              p: isMobile ? 2 : 2.5,
+              px: isMobile ? 2.5 : 3,
+              borderTop: '1px solid #f1f5f9',
+              bgcolor: '#fafafa',
+              justifyContent: 'space-between',
+            }}
+          >
+            <Button
+              onClick={handleSafeClose}
+              disabled={submitting}
+              sx={{ fontWeight: 700, color: '#64748b', textTransform: 'none' }}
+            >
               Cancel
             </Button>
             <Button
@@ -704,7 +802,10 @@ export default function OwnerCouponsPage() {
                 '&:hover': { bgcolor: '#c2410c' },
                 fontWeight: 800,
                 borderRadius: '10px',
-                px: 3,
+                px: 3.5,
+                py: 1,
+                textTransform: 'none',
+                boxShadow: '0 4px 12px rgba(234, 88, 12, 0.25)',
               }}
             >
               {submitting ? <CircularProgress size={20} sx={{ color: '#ffffff' }} /> : 'Publish Offer'}
