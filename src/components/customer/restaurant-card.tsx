@@ -40,7 +40,6 @@ export function RestaurantCard({ restaurant, onExplore }: RestaurantCardProps) {
       elevation={0}
       onClick={() => onExplore(restaurant)}
       sx={{
-        minWidth:"max-content",
         borderRadius: '20px',
         border: '1.5px solid #e2e8f0',
         bgcolor: '#ffffff',
@@ -119,13 +118,13 @@ export function RestaurantCard({ restaurant, onExplore }: RestaurantCardProps) {
       </Box>
 
       {/* Card Content */}
-      <Box sx={{ p: 2.5, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
+      <Box sx={{ p: { xs: 2, sm: 2.5 }, display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
         <Typography
           variant="h6"
           sx={{
             fontWeight: 800,
             color: '#0f172a',
-            fontSize: '1.25rem',
+            fontSize: { xs: '1.1rem', sm: '1.25rem' },
             letterSpacing: '-0.02em',
             lineHeight: 1.25,
             mb: 0.5,
@@ -159,7 +158,7 @@ export function RestaurantCard({ restaurant, onExplore }: RestaurantCardProps) {
             justifyContent: 'space-between',
             gap: 1,
             fontSize: '0.82rem',
-            mb: 2,
+            mb: { xs: 0, md: 2 },
           }}
         >
           {/* 1. Delivery Time */}
@@ -180,7 +179,7 @@ export function RestaurantCard({ restaurant, onExplore }: RestaurantCardProps) {
           </Box>
         </Box>
 
-        {/* Explore Menu Button */}
+        {/* Explore Menu Button (Visible on Desktop only) */}
         <Button
           fullWidth
           variant="contained"
@@ -190,6 +189,7 @@ export function RestaurantCard({ restaurant, onExplore }: RestaurantCardProps) {
           }}
           endIcon={<ArrowForwardIcon sx={{ fontSize: 18 }} />}
           sx={{
+            display: { xs: 'none', md: 'flex' },
             py: 1.2,
             borderRadius: '12px',
             bgcolor: '#ea580c',

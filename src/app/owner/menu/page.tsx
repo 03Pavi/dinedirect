@@ -327,31 +327,39 @@ export default function OwnerMenuPage() {
                 flexDirection: { xs: 'column', md: 'row' },
                 justifyContent: 'space-between',
                 alignItems: { xs: 'flex-start', md: 'center' },
-                gap: 2,
+                gap: 2.5,
               }}
             >
-              <Box sx={{ width: '100%', maxWidth: 450 }}>
-                <Skeleton variant="text" width={120} height={20} sx={{ mb: 1, borderRadius: '4px' }} />
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.5 }}>
-                  <Skeleton variant="text" width={220} height={42} sx={{ borderRadius: '6px' }} />
+              <Box sx={{ width: '100%', maxWidth: 460 }}>
+                <Skeleton variant="text" width={130} height={20} sx={{ mb: 1, borderRadius: '4px' }} />
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 0.8 }}>
+                  <Skeleton variant="text" width={240} height={42} sx={{ borderRadius: '6px' }} />
                   <Skeleton variant="rounded" width={95} height={24} sx={{ borderRadius: '6px' }} />
                 </Box>
-                <Skeleton variant="text" width="85%" height={18} sx={{ borderRadius: '4px' }} />
+                <Skeleton variant="text" width="90%" height={18} sx={{ borderRadius: '4px' }} />
               </Box>
 
-              {/* Action Buttons Skeleton */}
-              <Stack direction="row" spacing={1.5} flexWrap="wrap">
-                <Skeleton variant="rounded" width={175} height={40} sx={{ borderRadius: '8px' }} />
-                <Skeleton variant="rounded" width={135} height={40} sx={{ borderRadius: '8px' }} />
-                <Skeleton variant="rounded" width={150} height={40} sx={{ borderRadius: '8px' }} />
-              </Stack>
+              {/* Action Buttons Skeleton with proper gap */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  flexWrap: 'wrap',
+                  width: { xs: '100%', md: 'auto' },
+                }}
+              >
+                <Skeleton variant="rounded" width={180} height={40} sx={{ borderRadius: '8px' }} />
+                <Skeleton variant="rounded" width={140} height={40} sx={{ borderRadius: '8px' }} />
+                <Skeleton variant="rounded" width={160} height={40} sx={{ borderRadius: '8px' }} />
+              </Box>
             </Box>
 
-            {/* 4 Stat Summary Cards Skeleton */}
+            {/* 4 Stat Summary Cards Skeleton matching real grid */}
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+                gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(4, 1fr)' },
                 gap: 2,
               }}
             >
@@ -360,55 +368,67 @@ export default function OwnerMenuPage() {
                   key={i}
                   elevation={0}
                   sx={{
-                    p: 2.2,
-                    borderRadius: '14px',
-                    border: '1.5px solid #f1f5f9',
+                    p: 2,
+                    borderRadius: '10px',
+                    border: '1px solid #e2e8f0',
                     bgcolor: '#ffffff',
                   }}
                 >
-                  <Skeleton variant="text" width="55%" height={16} sx={{ mb: 1, borderRadius: '4px' }} />
-                  <Skeleton variant="text" width="35%" height={38} sx={{ borderRadius: '6px' }} />
+                  <Skeleton variant="text" width="60%" height={16} sx={{ mb: 0.8, borderRadius: '4px' }} />
+                  <Skeleton variant="text" width="40%" height={32} sx={{ borderRadius: '6px' }} />
                 </Card>
               ))}
             </Box>
 
-            {/* Search, Filter Bar & Tabs Skeleton */}
+            {/* Search, Filter Bar & Tabs Skeleton matching real layout */}
             <Card
               elevation={0}
               sx={{
-                p: 2.5,
-                borderRadius: '16px',
-                border: '1.5px solid #f1f5f9',
+                p: { xs: 2, sm: 2.5 },
+                borderRadius: '12px',
+                border: '1px solid #e2e8f0',
                 bgcolor: '#ffffff',
               }}
             >
               <Box
                 sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', lg: 'row' },
-                  justifyContent: 'space-between',
+                  display: 'grid',
+                  gridTemplateColumns: { xs: '1fr', md: '1.2fr 1fr 1fr' },
                   gap: 2,
-                  mb: 2.5,
+                  alignItems: 'center',
                 }}
               >
-                <Skeleton variant="rounded" height={42} sx={{ borderRadius: '10px', width: { xs: '100%', md: 360 } }} />
-                <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-                  <Skeleton variant="rounded" width={160} height={38} sx={{ borderRadius: '8px' }} />
-                  <Skeleton variant="rounded" width={160} height={38} sx={{ borderRadius: '8px' }} />
+                <Skeleton variant="rounded" height={40} sx={{ borderRadius: '8px', width: '100%' }} />
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                  <Skeleton variant="text" width={40} height={18} sx={{ borderRadius: '4px' }} />
+                  <Skeleton variant="rounded" width={55} height={28} sx={{ borderRadius: '6px' }} />
+                  <Skeleton variant="rounded" width={75} height={28} sx={{ borderRadius: '6px' }} />
+                  <Skeleton variant="rounded" width={75} height={28} sx={{ borderRadius: '6px' }} />
+                </Box>
+                <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', justifyContent: { md: 'flex-end' } }}>
+                  <Skeleton variant="text" width={45} height={18} sx={{ borderRadius: '4px' }} />
+                  <Skeleton variant="rounded" width={55} height={28} sx={{ borderRadius: '6px' }} />
+                  <Skeleton variant="rounded" width={70} height={28} sx={{ borderRadius: '6px' }} />
+                  <Skeleton variant="rounded" width={80} height={28} sx={{ borderRadius: '6px' }} />
                 </Box>
               </Box>
-              <Box sx={{ display: 'flex', gap: 1.5 }}>
-                <Skeleton variant="rounded" width={110} height={34} sx={{ borderRadius: '20px' }} />
-                <Skeleton variant="rounded" width={120} height={34} sx={{ borderRadius: '20px' }} />
-                <Skeleton variant="rounded" width={100} height={34} sx={{ borderRadius: '20px' }} />
+
+              <Divider sx={{ my: 2 }} />
+
+              {/* Category tabs skeleton */}
+              <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 0.5 }}>
+                <Skeleton variant="rounded" width={110} height={36} sx={{ borderRadius: '6px' }} />
+                <Skeleton variant="rounded" width={140} height={36} sx={{ borderRadius: '6px' }} />
+                <Skeleton variant="rounded" width={130} height={36} sx={{ borderRadius: '6px' }} />
+                <Skeleton variant="rounded" width={120} height={36} sx={{ borderRadius: '6px' }} />
               </Box>
             </Card>
 
-            {/* Dishes Grid Skeleton */}
+            {/* Dishes Grid Skeleton matching MenuItemCard */}
             <Box
               sx={{
                 display: 'grid',
-                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
+                gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
                 gap: 2.5,
               }}
             >
@@ -417,30 +437,30 @@ export default function OwnerMenuPage() {
                   key={idx}
                   elevation={0}
                   sx={{
-                    borderRadius: '16px',
-                    border: '1.5px solid #f1f5f9',
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
                     bgcolor: '#ffffff',
                     overflow: 'hidden',
                     display: 'flex',
                     flexDirection: 'column',
-                    height: 380,
+                    height: '100%',
                   }}
                 >
-                  <Skeleton variant="rectangular" height={190} animation="wave" sx={{ bgcolor: '#f1f5f9' }} />
+                  <Skeleton variant="rectangular" height={160} animation="wave" sx={{ bgcolor: '#f1f5f9' }} />
                   <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', flex: 1, justifyContent: 'space-between' }}>
                     <Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                        <Skeleton variant="text" width="60%" height={26} sx={{ borderRadius: '4px' }} />
-                        <Skeleton variant="rounded" width={50} height={22} sx={{ borderRadius: '12px' }} />
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
+                        <Skeleton variant="text" width="60%" height={24} sx={{ borderRadius: '4px' }} />
+                        <Skeleton variant="rounded" width={45} height={20} sx={{ borderRadius: '6px' }} />
                       </Box>
                       <Skeleton variant="text" width="90%" height={16} sx={{ mb: 0.5, borderRadius: '4px' }} />
-                      <Skeleton variant="text" width="70%" height={16} sx={{ borderRadius: '4px' }} />
+                      <Skeleton variant="text" width="65%" height={16} sx={{ borderRadius: '4px' }} />
                     </Box>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, borderTop: '1px solid #f8fafc' }}>
-                      <Skeleton variant="text" width={60} height={28} sx={{ borderRadius: '4px' }} />
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, mt: 2, borderTop: '1px solid #f8fafc' }}>
+                      <Skeleton variant="text" width={65} height={24} sx={{ borderRadius: '4px' }} />
                       <Box sx={{ display: 'flex', gap: 1 }}>
-                        <Skeleton variant="circular" width={32} height={32} />
-                        <Skeleton variant="circular" width={32} height={32} />
+                        <Skeleton variant="circular" width={28} height={28} />
+                        <Skeleton variant="circular" width={28} height={28} />
                       </Box>
                     </Box>
                   </Box>
@@ -529,8 +549,16 @@ export default function OwnerMenuPage() {
                 </Typography>
               </Box>
 
-              {/* Action Buttons */}
-              <Stack direction="row" spacing={1.5} flexWrap="wrap">
+              {/* Action Buttons with proper row and column gap */}
+              <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 1.5,
+                  flexWrap: 'wrap',
+                  mt: { xs: 1, md: 0 },
+                }}
+              >
                 <Button
                   variant="outlined"
                   color="secondary"
@@ -543,6 +571,14 @@ export default function OwnerMenuPage() {
                     fontWeight: 700,
                     textTransform: 'none',
                     borderColor: '#cbd5e1',
+                    fontSize: '0.85rem',
+                    py: 0.9,
+                    px: 1.8,
+                    whiteSpace: 'nowrap',
+                    '&:hover': {
+                      borderColor: '#94a3b8',
+                      bgcolor: '#f8fafc',
+                    },
                   }}
                 >
                   Preview Customer Menu
@@ -558,6 +594,14 @@ export default function OwnerMenuPage() {
                     textTransform: 'none',
                     borderColor: '#cbd5e1',
                     color: '#334155',
+                    fontSize: '0.85rem',
+                    py: 0.9,
+                    px: 1.8,
+                    whiteSpace: 'nowrap',
+                    '&:hover': {
+                      borderColor: '#94a3b8',
+                      bgcolor: '#f8fafc',
+                    },
                   }}
                 >
                   + Add Category
@@ -573,12 +617,15 @@ export default function OwnerMenuPage() {
                     fontWeight: 700,
                     textTransform: 'none',
                     boxShadow: '0 4px 14px rgba(232, 93, 4, 0.3)',
-                    px: 2.5,
+                    fontSize: '0.85rem',
+                    py: 0.9,
+                    px: 2.2,
+                    whiteSpace: 'nowrap',
                   }}
                 >
                   + Add Menu Item
                 </Button>
-              </Stack>
+              </Box>
             </Box>
 
             {/* Metrics Overview Cards */}

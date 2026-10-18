@@ -106,7 +106,7 @@ function CheckoutContent() {
     return () => {
       active = false
     }
-  }, [cart.restaurantId, cart.tableNumber, tableNumber, dispatch])
+  }, [cart.restaurantId, dispatch])
 
   const handleSelectTable = (tbl: string) => {
     setTableNumber(tbl)
@@ -118,6 +118,7 @@ function CheckoutContent() {
 
   // Coupon State
   const [couponCode, setCouponCode] = useState('')
+  const [activeCouponCode, setActiveCouponCode] = useState<string>('')
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [couponError, setCouponError] = useState('')
 
@@ -173,16 +174,66 @@ function CheckoutContent() {
   // Pre-fill scratched coupon code from searchParams or localStorage
   useEffect(() => {
     try {
-      if (typeof window !== 'undefined' && !appliedCoupon) {
+      if (typeof window !== 'undefined' && !activeCouponCode && !appliedCoupon) {
         const queryCode = searchParams.get('coupon')
         const savedCode = localStorage.getItem('dine_applied_coupon')
         const code = (queryCode || savedCode || '').trim().toUpperCase()
-        if (code && !couponCode) {
+        if (code) {
           setCouponCode(code)
+          setActiveCouponCode(code)
         }
       }
     } catch {}
-  }, [searchParams, appliedCoupon, couponCode])
+  }, [searchParams])
+
+  // Continuously validate coupon whenever subtotal (item quantities/prices) change
+  useEffect(() => {
+    if (!activeCouponCode || !activeRestaurantId) {
+      if (appliedCoupon) setAppliedCoupon(null)
+      return
+    }
+
+    if (subtotal <= 0) {
+      setAppliedCoupon(null)
+      setCouponError('')
+      return
+    }
+
+    let active = true
+    setApplyingCoupon(true)
+
+    apiClient
+      .post<{ valid: boolean; discount: number; message: string }>('/api/coupons/validate', {
+        restaurantId: activeRestaurantId,
+        code: activeCouponCode,
+        subtotal,
+      })
+      .then((res) => {
+        if (!active) return
+        if (res?.valid) {
+          setAppliedCoupon({ code: activeCouponCode, discount: res.discount })
+          setCouponError('')
+          try {
+            localStorage.setItem('dine_applied_coupon', activeCouponCode)
+          } catch {}
+        } else {
+          setAppliedCoupon(null)
+          setCouponError(res?.message || `Coupon "${activeCouponCode}" requires a higher order total.`)
+        }
+      })
+      .catch((err) => {
+        if (!active) return
+        setAppliedCoupon(null)
+        setCouponError(err?.message || `Failed to re-validate coupon "${activeCouponCode}".`)
+      })
+      .finally(() => {
+        if (active) setApplyingCoupon(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [subtotal, activeCouponCode, activeRestaurantId])
 
   const handleApplyCoupon = async (codeToApply?: string) => {
     const code = (codeToApply || couponCode).trim().toUpperCase()
@@ -207,12 +258,21 @@ function CheckoutContent() {
       })
 
       if (res?.valid) {
+        setActiveCouponCode(code)
         setAppliedCoupon({ code, discount: res.discount })
         setCouponCode(code)
+        setCouponError('')
+        try {
+          localStorage.setItem('dine_applied_coupon', code)
+        } catch {}
       } else {
+        setActiveCouponCode(code)
+        setAppliedCoupon(null)
         setCouponError(res?.message || 'Invalid coupon code')
       }
     } catch (err: any) {
+      setActiveCouponCode('')
+      setAppliedCoupon(null)
       setCouponError(err?.message || 'Invalid or expired coupon code')
     } finally {
       setApplyingCoupon(false)
@@ -220,9 +280,13 @@ function CheckoutContent() {
   }
 
   const handleRemoveCoupon = () => {
+    setActiveCouponCode('')
     setAppliedCoupon(null)
     setCouponCode('')
     setCouponError('')
+    try {
+      localStorage.removeItem('dine_applied_coupon')
+    } catch {}
   }
 
   const handlePlaceOrder = async () => {

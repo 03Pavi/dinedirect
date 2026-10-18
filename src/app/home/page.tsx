@@ -266,7 +266,7 @@ function HomeContent() {
         />
 
         {/* Scrollable Feed Container */}
-        <Box sx={{ p: { xs: 2, sm: 3, md: 3.5 }, flex: 1 }}>
+        <Box sx={{ p: { xs: 2, sm: 3, md: 3.5 }, pb: { xs: 16, lg: 5 }, flex: 1 }}>
           {/* Promo Banner Carousel */}
           <CustomerBanner />
 
@@ -430,6 +430,7 @@ function HomeContent() {
                     display: 'grid',
                     gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
                     gap: 3,
+                    mb: { xs: 8, md: 3 },
                   }}
                 >
                   {Array.from({ length: 6 }).map((_, idx) => (
@@ -480,6 +481,7 @@ function HomeContent() {
                     display: 'grid',
                     gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
                     gap: 2.5,
+                    mb: { xs: 8, md: 3 },
                   }}
                 >
                   {Array.from({ length: 6 }).map((_, idx) => (
@@ -557,6 +559,7 @@ function HomeContent() {
                     display: 'grid',
                     gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
                     gap: 3,
+                    mb: { xs: 8, md: 3 },
                   }}
                 >
                   {filteredRestaurants.map((restaurant) => (
@@ -615,6 +618,7 @@ function HomeContent() {
                     display: 'grid',
                     gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
                     gap: 2.5,
+                    mb: { xs: 8, md: 3 },
                   }}
                 >
                   {filteredDishes.map((dish) => {

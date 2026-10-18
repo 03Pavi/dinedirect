@@ -390,13 +390,65 @@ export default function OwnerQRPage() {
 
   if (!authInitialized) {
     return (
-      <Box sx={{ minHeight: '100vh', backgroundColor: '#F8F9FA' }}>
+      <Box sx={{ minHeight: '100vh', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column' }}>
         <Navbar />
-        <Container maxWidth="xl" sx={{ py: 4 }}>
-          <Skeleton variant="rectangular" height={100} sx={{ borderRadius: '12px', mb: 3 }} />
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '5fr 7fr' }, gap: 3 }}>
-            <Skeleton variant="rectangular" height={450} sx={{ borderRadius: '12px' }} />
-            <Skeleton variant="rectangular" height={450} sx={{ borderRadius: '12px' }} />
+        <Container maxWidth="xl" sx={{ py: 3, px: { xs: 2, sm: 3 }, flexGrow: 1 }}>
+          {/* Header Bar Skeleton */}
+          <Box
+            sx={{
+              p: { xs: 2, sm: 2.5 },
+              borderRadius: '12px',
+              border: '1px solid #e2e8f0',
+              bgcolor: '#ffffff',
+              mb: 3,
+            }}
+          >
+            <Skeleton variant="text" width={110} height={24} sx={{ mb: 1, borderRadius: '4px' }} />
+            <Skeleton variant="text" width={280} height={38} sx={{ borderRadius: '6px', mb: 0.5 }} />
+            <Skeleton variant="text" width="60%" height={20} sx={{ borderRadius: '4px' }} />
+          </Box>
+
+          {/* 4 Analytics KPI Cards Skeleton */}
+          <Box
+            sx={{
+              display: 'grid',
+              gridTemplateColumns: { xs: 'repeat(2, 1fr)', md: 'repeat(4, 1fr)' },
+              gap: 2,
+              mb: 3,
+            }}
+          >
+            {[1, 2, 3, 4].map((i) => (
+              <Box
+                key={i}
+                sx={{
+                  p: 2.2,
+                  borderRadius: '12px',
+                  bgcolor: '#ffffff',
+                  border: '1px solid #e2e8f0',
+                }}
+              >
+                <Skeleton variant="text" width="50%" height={16} sx={{ mb: 1, borderRadius: '4px' }} />
+                <Skeleton variant="text" width="40%" height={36} sx={{ borderRadius: '6px' }} />
+              </Box>
+            ))}
+          </Box>
+
+          {/* Main 2-Column Layout Skeleton */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '5fr 7fr' }, gap: 3 }}>
+            <Box sx={{ p: 3, borderRadius: '14px', border: '1px solid #e2e8f0', bgcolor: '#ffffff', minHeight: 480 }}>
+              <Skeleton variant="rounded" height={40} sx={{ mb: 2.5, borderRadius: '10px' }} />
+              <Skeleton variant="rounded" height={40} sx={{ mb: 2, borderRadius: '8px' }} />
+              <Skeleton variant="rounded" height={40} sx={{ mb: 3, borderRadius: '8px' }} />
+              <Skeleton variant="rounded" height={220} sx={{ borderRadius: '12px' }} />
+            </Box>
+            <Box sx={{ p: 3, borderRadius: '14px', border: '1px solid #e2e8f0', bgcolor: '#ffffff', minHeight: 480 }}>
+              <Skeleton variant="text" width={200} height={32} sx={{ mb: 2, borderRadius: '6px' }} />
+              <Stack spacing={2}>
+                {[1, 2, 3, 4].map((i) => (
+                  <Skeleton key={i} variant="rounded" height={80} sx={{ borderRadius: '10px' }} />
+                ))}
+              </Stack>
+            </Box>
           </Box>
         </Container>
       </Box>

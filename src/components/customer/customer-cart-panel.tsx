@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -91,6 +91,47 @@ export function CustomerCartPanel({ onCloseMobile }: CustomerCartPanelProps) {
       setValidatingCoupon(false)
     }
   }
+
+  // Continuously validate coupon whenever subtotal changes
+  useEffect(() => {
+    if (!appliedCoupon || !cart.restaurantId) {
+      return
+    }
+
+    if (cart.subtotal <= 0) {
+      setAppliedCoupon(null)
+      setDiscountAmount(0)
+      return
+    }
+
+    let active = true
+    apiClient
+      .post<{ valid: boolean; discount: number; message: string }>('/api/coupons/validate', {
+        restaurantId: cart.restaurantId,
+        code: appliedCoupon,
+        subtotal: cart.subtotal,
+      })
+      .then((res) => {
+        if (!active) return
+        if (res?.valid) {
+          setDiscountAmount(res.discount)
+          setCouponError(null)
+        } else {
+          setAppliedCoupon(null)
+          setDiscountAmount(0)
+          setCouponError(res?.message || `Coupon "${appliedCoupon}" is no longer applicable.`)
+        }
+      })
+      .catch(() => {
+        if (!active) return
+        setAppliedCoupon(null)
+        setDiscountAmount(0)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [cart.subtotal, appliedCoupon, cart.restaurantId])
 
   const handleRemoveCoupon = () => {
     setAppliedCoupon(null)

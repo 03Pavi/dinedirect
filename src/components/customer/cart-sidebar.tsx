@@ -55,8 +55,10 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
   const isAuthenticated = useAppSelector(selectIsAuthenticated)
 
   const [couponCode, setCouponCode] = useState('')
+  const [activeCouponCode, setActiveCouponCode] = useState<string>('')
   const [appliedCoupon, setAppliedCoupon] = useState<{ code: string; discount: number } | null>(null)
   const [couponError, setCouponError] = useState('')
+  const [validatingCoupon, setValidatingCoupon] = useState(false)
   const [tableNumber, setTableNumber] = useState(cart.tableNumber || '')
   const [availableTables, setAvailableTables] = useState<TableOption[]>([])
   const [loadingTables, setLoadingTables] = useState(false)
@@ -98,7 +100,7 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
     return () => {
       active = false
     }
-  }, [cart.restaurantId, cart.tableNumber, dispatch])
+  }, [cart.restaurantId, dispatch])
 
   // Manage back-button history on checkout modal
   useHistoryModal({
@@ -110,19 +112,70 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
   // Auto-populate scratched coupon from localStorage if available
   useEffect(() => {
     try {
-      if (typeof window !== 'undefined' && !appliedCoupon && !couponCode) {
+      if (typeof window !== 'undefined' && !activeCouponCode && !appliedCoupon) {
         const saved = localStorage.getItem('dine_applied_coupon')
         if (saved) {
-          setCouponCode(saved.trim().toUpperCase())
+          const code = saved.trim().toUpperCase()
+          setCouponCode(code)
+          setActiveCouponCode(code)
         }
       }
     } catch {}
-  }, [appliedCoupon, couponCode])
+  }, [])
 
   const subtotal = cart.subtotal || 0
   const deliveryFee = cart.items.length > 0 ? (cart.deliveryFee || 25) : 0
   const discountAmount = appliedCoupon ? appliedCoupon.discount : 0
   const finalTotal = Math.max(0, subtotal + deliveryFee - discountAmount)
+
+  // Continuously validate and update coupon validity & discount whenever cart subtotal changes
+  useEffect(() => {
+    if (!activeCouponCode || !cart.restaurantId) {
+      if (appliedCoupon) setAppliedCoupon(null)
+      return
+    }
+
+    if (subtotal <= 0) {
+      setAppliedCoupon(null)
+      setCouponError('')
+      return
+    }
+
+    let active = true
+    setValidatingCoupon(true)
+
+    apiClient
+      .post<{ valid: boolean; discount: number; message: string }>('/api/coupons/validate', {
+        restaurantId: cart.restaurantId,
+        code: activeCouponCode,
+        subtotal,
+      })
+      .then((res) => {
+        if (!active) return
+        if (res?.valid) {
+          setAppliedCoupon({ code: activeCouponCode, discount: res.discount })
+          setCouponError('')
+          try {
+            localStorage.setItem('dine_applied_coupon', activeCouponCode)
+          } catch {}
+        } else {
+          setAppliedCoupon(null)
+          setCouponError(res?.message || `Coupon "${activeCouponCode}" requires a higher order total.`)
+        }
+      })
+      .catch((err) => {
+        if (!active) return
+        setAppliedCoupon(null)
+        setCouponError(err?.message || `Failed to re-validate coupon "${activeCouponCode}".`)
+      })
+      .finally(() => {
+        if (active) setValidatingCoupon(false)
+      })
+
+    return () => {
+      active = false
+    }
+  }, [subtotal, activeCouponCode, cart.restaurantId])
 
   const handleApplyCoupon = async (customCode?: string) => {
     setCouponError('')
@@ -132,6 +185,12 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
       return
     }
 
+    if (!cart.restaurantId) {
+      setCouponError('Restaurant details not found')
+      return
+    }
+
+    setValidatingCoupon(true)
     try {
       const res = await apiClient.post<{ valid: boolean; discount: number; message: string }>('/api/coupons/validate', {
         restaurantId: cart.restaurantId,
@@ -140,20 +199,35 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
       })
 
       if (res?.valid) {
+        setActiveCouponCode(code)
         setAppliedCoupon({ code, discount: res.discount })
         setCouponCode(code)
+        setCouponError('')
+        try {
+          localStorage.setItem('dine_applied_coupon', code)
+        } catch {}
       } else {
+        setActiveCouponCode(code)
+        setAppliedCoupon(null)
         setCouponError(res?.message || 'Invalid coupon code')
       }
     } catch (err: any) {
+      setActiveCouponCode('')
+      setAppliedCoupon(null)
       setCouponError(err?.message || 'Invalid or inactive coupon code')
+    } finally {
+      setValidatingCoupon(false)
     }
   }
 
   const handleRemoveCoupon = () => {
+    setActiveCouponCode('')
     setAppliedCoupon(null)
     setCouponCode('')
     setCouponError('')
+    try {
+      localStorage.removeItem('dine_applied_coupon')
+    } catch {}
   }
 
   const handleCheckoutClick = () => {
@@ -456,8 +530,8 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
               variant="contained"
               size="small"
               onClick={() => handleApplyCoupon()}
-              disabled={!!appliedCoupon || !couponCode.trim()}
-              startIcon={<LocalOfferIcon sx={{ fontSize: 16 }} />}
+              disabled={validatingCoupon || !!appliedCoupon || !couponCode.trim()}
+              startIcon={validatingCoupon ? <CircularProgress size={14} color="inherit" /> : <LocalOfferIcon sx={{ fontSize: 16 }} />}
               sx={{
                 bgcolor: '#ea580c',
                 color: '#ffffff',
@@ -471,7 +545,7 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
                 '&:hover': { bgcolor: '#c2410c' },
               }}
             >
-              Add Coupon
+              {validatingCoupon ? 'Checking...' : 'Add Coupon'}
             </Button>
           </Box>
           {couponError && (

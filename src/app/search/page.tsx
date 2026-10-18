@@ -217,7 +217,7 @@ function SearchContent() {
           borderRight: { lg: '1px solid #f1f5f9' },
         }}
       >
-        <Box sx={{ p: { xs: 2, sm: 3, md: 3.5 }, flex: 1 }}>
+        <Box sx={{ p: { xs: 2, sm: 3, md: 3.5 }, pb: { xs: 16, lg: 5 }, flex: 1 }}>
           {/* Main Search Input Hero */}
           <Box sx={{ mb: 3 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
@@ -381,6 +381,7 @@ function SearchContent() {
                 display: 'grid',
                 gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' },
                 gap: 3,
+                mb: { xs: 8, md: 3 },
               }}
             >
               {Array.from({ length: 6 }).map((_, i) => (
@@ -440,6 +441,7 @@ function SearchContent() {
                       display: 'grid',
                       gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
                       gap: 3,
+                      mb: { xs: 8, md: 3 },
                     }}
                   >
                     {filteredRestaurants.map((restaurant) => (
@@ -464,6 +466,7 @@ function SearchContent() {
                       display: 'grid',
                       gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', lg: 'repeat(3, 1fr)' },
                       gap: 2.5,
+                      mb: { xs: 8, md: 3 },
                     }}
                   >
                     {filteredDishes.map((dish) => {

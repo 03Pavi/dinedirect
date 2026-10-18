@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useMemo, Suspense } from 'react'
+import React, { useEffect, useState, Suspense } from 'react'
 import { useParams, useRouter, useSearchParams } from 'next/navigation'
 import {
   Box,
@@ -172,7 +172,7 @@ function RestaurantDetailPage() {
         />
 
         {/* Content Container */}
-        <Box sx={{ p: { xs: 2, sm: 3, md: 3.5 }, flex: 1 }}>
+        <Box sx={{ p: { xs: 2, sm: 3, md: 3.5 }, pb: { xs: 16, lg: 5 }, flex: 1 }}>
           {loading ? (
             /* Skeleton Loading State for Restaurant Detail */
             <Box>
@@ -181,7 +181,7 @@ function RestaurantDetailPage() {
               </Box>
               <Skeleton
                 variant="rectangular"
-                animation="wave"
+                 animation="wave"
                 height={220}
                 sx={{ borderRadius: '20px', mb: 3, bgcolor: '#f1f5f9' }}
               />

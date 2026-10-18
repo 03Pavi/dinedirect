@@ -495,7 +495,7 @@ export function RestaurantDetailView({ restaurant, tableNumber, onBack }: Restau
         </Box>
       ) : (
         <>
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2.5 }}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: 'repeat(2, 1fr)', md: 'repeat(3, 1fr)' }, gap: 2.5, mb: { xs: 8, md: 3 } }}>
             {items.map((item) => {
               const inCartItem = cart.items.find((i) => i.menuItemId === item.id)
               const qty = inCartItem ? inCartItem.quantity : 0
@@ -541,7 +541,7 @@ export function RestaurantDetailView({ restaurant, tableNumber, onBack }: Restau
 
           {/* Manual Load More Button fallback */}
           {hasMore && !loadingMore && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: { xs: 8, md: 3 } }}>
               <Button
                 variant="outlined"
                 onClick={handleLoadMore}
@@ -570,7 +570,7 @@ export function RestaurantDetailView({ restaurant, tableNumber, onBack }: Restau
 
           {/* All Dishes Loaded Indicator */}
           {!hasMore && items.length > 0 && (
-            <Box sx={{ textAlign: 'center', py: 3, mt: 2 }}>
+            <Box sx={{ textAlign: 'center', py: 3, mt: 2, mb: { xs: 8, md: 2 } }}>
               <Typography variant="caption" sx={{ color: '#94a3b8', fontWeight: 600 }}>
                 ✓ Showing all {items.length} dishes in this selection
               </Typography>
