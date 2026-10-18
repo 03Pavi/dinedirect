@@ -480,7 +480,7 @@ export default function OwnerDashboardPage() {
                   <ArrowForwardIcon className="action-arrow-qr" sx={{ color: '#cbd5e1', fontSize: 20, transition: 'all 0.2s ease' }} />
                 </Box>
                 <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 1, fontSize: '1.05rem' }}>
-                  Table QR & Scans
+                  QR & Scans
                 </Typography>
                 <Typography variant="body2" sx={{ color: '#64748b', fontSize: '0.875rem', lineHeight: 1.6, flexGrow: 1, mb: 2.5 }}>
                   Generate table QR codes, customize design, print acrylic stands, and track customer scan metrics.

@@ -178,6 +178,63 @@ function OffersContent() {
             </Typography>
           </Box>
 
+          {/* Scratch & Win Feature Banner */}
+          <Box
+            sx={{
+              p: { xs: 2.5, sm: 3 },
+              borderRadius: '20px',
+              background: 'linear-gradient(135deg, #1e1b4b 0%, #312e81 50%, #4338ca 100%)',
+              color: '#ffffff',
+              mb: 3.5,
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              alignItems: { xs: 'flex-start', sm: 'center' },
+              justifyContent: 'space-between',
+              gap: 2,
+              boxShadow: '0 8px 24px rgba(67, 56, 202, 0.25)',
+              border: '1px solid #4f46e5',
+            }}
+          >
+            <Box>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.8 }}>
+                <Chip
+                  label="NEW FEATURE"
+                  size="small"
+                  sx={{ bgcolor: '#fbbf24', color: '#78350f', fontWeight: 900, fontSize: '0.68rem', height: 20 }}
+                />
+                <Typography variant="caption" sx={{ color: '#c7d2fe', fontWeight: 700, letterSpacing: '0.04em' }}>
+                  LUCKY REWARDS
+                </Typography>
+              </Box>
+              <Typography variant="h5" sx={{ fontWeight: 900, letterSpacing: '-0.02em', mb: 0.5 }}>
+                🎁 Scratch & Win Mystery Coupons!
+              </Typography>
+              <Typography variant="body2" sx={{ color: '#e0e7ff', maxWidth: 440, fontSize: '0.88rem' }}>
+                Rub off interactive scratch cards with your finger to reveal secret dining discount coupons and instant rewards!
+              </Typography>
+            </Box>
+
+            <Button
+              variant="contained"
+              onClick={() => router.push('/scratch')}
+              sx={{
+                bgcolor: '#ea580c',
+                color: '#ffffff',
+                fontWeight: 800,
+                fontSize: '0.88rem',
+                borderRadius: '12px',
+                px: 3,
+                py: 1.2,
+                textTransform: 'none',
+                boxShadow: '0 4px 14px rgba(234, 88, 12, 0.4)',
+                flexShrink: 0,
+                '&:hover': { bgcolor: '#c2410c' },
+              }}
+            >
+              Play Scratch Card
+            </Button>
+          </Box>
+
           {/* Deals Grid */}
           <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', mb: 2 }}>
             Available Restaurant Offers ({loading ? '...' : coupons.length})

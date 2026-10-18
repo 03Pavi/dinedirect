@@ -25,19 +25,29 @@ export async function getRestaurantQRCodes(
 
     if (!data) return []
 
-    return data.map((d: any) => ({
-      id: d.id,
-      restaurantId: d.restaurantId,
-      tableNumber: d.tableNumber,
-      label: d.label,
-      code: d.code,
-      url: d.url || `${effectiveHost}/home?restaurantId=${encodeURIComponent(restaurantId)}&table=${encodeURIComponent(d.tableNumber)}&qrId=${encodeURIComponent(d.id)}`,
-      color: d.color || '#ea580c',
-      scansCount: d.scansCount || 0,
-      qrType: (d.qrType as QRType) || 'TABLE',
-      createdAt: d.createdAt,
-      lastScannedAt: d.lastScannedAt || null,
-    }))
+    return data.map((d: any) => {
+      const type = (d.qrType as QRType) || 'TABLE'
+      let fallbackUrl = `${effectiveHost}/home?restaurantId=${encodeURIComponent(restaurantId)}&table=${encodeURIComponent(d.tableNumber)}&qrId=${encodeURIComponent(d.id)}`
+      if (type === 'SCRATCH_CARD') {
+        fallbackUrl = `${effectiveHost}/scratch?restaurantId=${encodeURIComponent(restaurantId)}&coupon=${encodeURIComponent(d.tableNumber)}&qrId=${encodeURIComponent(d.id)}`
+      } else if (type === 'RESTAURANT') {
+        fallbackUrl = `${effectiveHost}/home?restaurantId=${encodeURIComponent(restaurantId)}&qrId=${encodeURIComponent(d.id)}`
+      }
+
+      return {
+        id: d.id,
+        restaurantId: d.restaurantId,
+        tableNumber: d.tableNumber,
+        label: d.label,
+        code: d.code,
+        url: d.url || fallbackUrl,
+        color: d.color || '#ea580c',
+        scansCount: d.scansCount || 0,
+        qrType: type,
+        createdAt: d.createdAt,
+        lastScannedAt: d.lastScannedAt || null,
+      }
+    })
   } catch (err: any) {
     console.error('Failed to get QR codes from Supabase:', err)
     return []
@@ -59,11 +69,24 @@ export async function createRestaurantQRCode(params: {
   const host = params.host || appUrl
   const id = `qr-${params.restaurantId}-${Date.now().toString(36)}`
   const sanitizedTable = params.tableNumber.trim()
-  const sanitizedCode = `DINE-${params.restaurantId.slice(0, 4).toUpperCase()}-${sanitizedTable.replace(/\s+/g, '').toUpperCase()}`
   const qrType: QRType = params.qrType || 'TABLE'
-  const label = params.label?.trim() || `${sanitizedTable} Dining QR`
+  const isScratch = qrType === 'SCRATCH_CARD'
+  const isRestaurant = qrType === 'RESTAURANT'
+
+  const randomSuffix = Math.random().toString(36).substring(2, 6).toUpperCase()
+  const sanitizedCode = isScratch
+    ? `SCRATCH-${params.restaurantId.slice(0, 4).toUpperCase()}-${sanitizedTable.replace(/\s+/g, '').toUpperCase()}-${randomSuffix}`
+    : `DINE-${params.restaurantId.slice(0, 4).toUpperCase()}-${sanitizedTable.replace(/\s+/g, '').toUpperCase()}`
+
+  const label = params.label?.trim() || (isScratch ? `Scratch & Win: ${sanitizedTable}` : isRestaurant ? 'Full Menu QR' : `${sanitizedTable} Dining QR`)
   const color = params.color || '#ea580c'
-  const url = `${host}/home?restaurantId=${encodeURIComponent(params.restaurantId)}&table=${encodeURIComponent(sanitizedTable)}&qrId=${encodeURIComponent(id)}`
+
+  let url = `${host}/home?restaurantId=${encodeURIComponent(params.restaurantId)}&table=${encodeURIComponent(sanitizedTable)}&qrId=${encodeURIComponent(id)}`
+  if (isScratch) {
+    url = `${host}/scratch?restaurantId=${encodeURIComponent(params.restaurantId)}&coupon=${encodeURIComponent(sanitizedTable)}&qrId=${encodeURIComponent(id)}`
+  } else if (isRestaurant) {
+    url = `${host}/home?restaurantId=${encodeURIComponent(params.restaurantId)}&qrId=${encodeURIComponent(id)}`
+  }
   const now = new Date().toISOString()
 
   const newQR: QRCodeItem = {
@@ -187,7 +210,7 @@ export async function getRestaurantTables(
 ): Promise<{ id: string; tableNumber: string; label: string }[]> {
   const qrs = await getRestaurantQRCodes(restaurantId)
   return qrs
-    .filter((q) => q.qrType !== 'RESTAURANT' && q.tableNumber.toLowerCase() !== 'menu')
+    .filter((q) => q.qrType !== 'RESTAURANT' && q.qrType !== 'SCRATCH_CARD' && q.tableNumber.toLowerCase() !== 'menu')
     .map((q) => ({
       id: q.id,
       tableNumber: q.tableNumber,

@@ -6,6 +6,7 @@ import {
   createRestaurantQRCode,
   deleteRestaurantQRCode,
 } from '@/data/qr-manager'
+import { getRestaurantCoupons, createRestaurantCoupon } from '@/data/coupon-manager'
 
 export async function GET(req: NextRequest) {
   try {
@@ -52,18 +53,52 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { tableNumber, label, color, qrType } = body
+    const {
+      tableNumber,
+      label,
+      color,
+      qrType,
+      couponCode,
+      discountType,
+      discountValue,
+      minOrderAmount,
+    } = body
 
-    if (!tableNumber || typeof tableNumber !== 'string') {
-      return NextResponse.json({ error: 'Table number or label is required' }, { status: 400 })
+    const isScratch = qrType === 'SCRATCH_CARD'
+    const code = (couponCode || tableNumber || '').trim().toUpperCase()
+
+    if (!code) {
+      return NextResponse.json(
+        { error: isScratch ? 'Coupon code or name is required for Scratch Card' : 'Table number or label is required' },
+        { status: 400 }
+      )
+    }
+
+    if (isScratch) {
+      try {
+        const existingCoupons = await getRestaurantCoupons(restaurant.id)
+        const exists = existingCoupons.find((c) => c.code.toUpperCase() === code)
+        if (!exists) {
+          await createRestaurantCoupon({
+            restaurantId: restaurant.id,
+            code,
+            description: label?.trim() || `${discountValue || 20}% OFF Scratch & Win Coupon`,
+            discountType: discountType || 'PERCENTAGE',
+            discountValue: Number(discountValue || 20),
+            minOrderAmount: Number(minOrderAmount || 0),
+          })
+        }
+      } catch (cpnErr) {
+        console.warn('Coupon auto-creation note:', cpnErr)
+      }
     }
 
     const appUrl = (process.env.NEXT_PUBLIC_APP_URL || 'https://dinedirect-kappa.vercel.app').replace(/\/+$/, '')
     const origin = appUrl || req.nextUrl.origin || 'https://dinedirect-kappa.vercel.app'
     const qr = await createRestaurantQRCode({
       restaurantId: restaurant.id,
-      tableNumber: tableNumber.trim(),
-      label: label?.trim(),
+      tableNumber: code,
+      label: label?.trim() || (isScratch ? `Scratch & Win: ${code}` : `${code} Dining QR`),
       color: color || '#ea580c',
       qrType: qrType || 'TABLE',
       host: origin,

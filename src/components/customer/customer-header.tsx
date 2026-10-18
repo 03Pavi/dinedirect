@@ -147,7 +147,7 @@ export function CustomerHeader({
                 userSelect: 'none',
               }}
             >
-              What would you like to eat?
+              What to eat?
             </Typography>
           </Box>
           <TuneIcon sx={{ fontSize: 18, color: '#94a3b8' }} />

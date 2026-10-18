@@ -351,7 +351,7 @@ export function ForgotPasswordDialog({
                 sx={{ flex: 1, py: 1.2 }}
                 startIcon={loading && <CircularProgress size={18} color="inherit" />}
               >
-                {loading ? 'RESETTING...' : 'RESET PASSWORD'}
+                {loading ? 'RESETTING...' : 'RESET'}
               </SharpButton>
             </DialogActions>
           </Box>

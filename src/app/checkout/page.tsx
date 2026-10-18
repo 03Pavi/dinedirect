@@ -170,6 +170,20 @@ function CheckoutContent() {
     }
   }, [activeRestaurantId])
 
+  // Pre-fill scratched coupon code from searchParams or localStorage
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && !appliedCoupon) {
+        const queryCode = searchParams.get('coupon')
+        const savedCode = localStorage.getItem('dine_applied_coupon')
+        const code = (queryCode || savedCode || '').trim().toUpperCase()
+        if (code && !couponCode) {
+          setCouponCode(code)
+        }
+      }
+    } catch {}
+  }, [searchParams, appliedCoupon, couponCode])
+
   const handleApplyCoupon = async (codeToApply?: string) => {
     const code = (codeToApply || couponCode).trim().toUpperCase()
     setCouponError('')

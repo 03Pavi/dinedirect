@@ -107,6 +107,18 @@ export function CartSidebar({ onClose, isDrawer = false }: CartSidebarProps) {
     modalId: 'checkout-modal',
   })
 
+  // Auto-populate scratched coupon from localStorage if available
+  useEffect(() => {
+    try {
+      if (typeof window !== 'undefined' && !appliedCoupon && !couponCode) {
+        const saved = localStorage.getItem('dine_applied_coupon')
+        if (saved) {
+          setCouponCode(saved.trim().toUpperCase())
+        }
+      }
+    } catch {}
+  }, [appliedCoupon, couponCode])
+
   const subtotal = cart.subtotal || 0
   const deliveryFee = cart.items.length > 0 ? (cart.deliveryFee || 25) : 0
   const discountAmount = appliedCoupon ? appliedCoupon.discount : 0

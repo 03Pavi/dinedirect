@@ -702,7 +702,7 @@ function HomeContent() {
               Rs {cart.subtotal}
             </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, pl: 1, borderLeft: '1px solid rgba(255,255,255,0.4)' }}>
-              View Order →
+              View →
             </Typography>
           </Box>
         </Box>

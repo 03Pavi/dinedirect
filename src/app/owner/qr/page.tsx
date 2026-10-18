@@ -38,6 +38,10 @@ import VisibilityIcon from '@mui/icons-material/Visibility'
 import CheckCircleIcon from '@mui/icons-material/CheckCircle'
 import StorefrontIcon from '@mui/icons-material/Storefront'
 import RefreshIcon from '@mui/icons-material/Refresh'
+import CardGiftcardIcon from '@mui/icons-material/CardGiftcard'
+import CelebrationIcon from '@mui/icons-material/Celebration'
+import LocalOfferIcon from '@mui/icons-material/LocalOffer'
+import AutoAwesomeIcon from '@mui/icons-material/AutoAwesome'
 
 import Navbar from '@/components/common/navbar'
 import { useAppDispatch, useAppSelector } from '@/store/hooks'
@@ -80,6 +84,15 @@ export default function OwnerQRPage() {
   const [selectedColor, setSelectedColor] = useState('#ea580c')
   const [previewDataUrl, setPreviewDataUrl] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Scratch card state
+  const [couponCode, setCouponCode] = useState('LUCKY20')
+  const [couponDescription, setCouponDescription] = useState('Flat 20% OFF on all menu items')
+  const [discountType, setDiscountType] = useState<'PERCENTAGE' | 'FLAT'>('PERCENTAGE')
+  const [discountValue, setDiscountValue] = useState<number | string>(20)
+  const [minOrderAmount, setMinOrderAmount] = useState<number | string>(149)
+  const [restaurantCoupons, setRestaurantCoupons] = useState<any[]>([])
+  const [qrFilter, setQrFilter] = useState<'ALL' | 'TABLE' | 'RESTAURANT' | 'SCRATCH_CARD'>('ALL')
 
   // Active / Selected QR for Stand Preview Dialog
   const [selectedQRForStand, setSelectedQRForStand] = useState<QRCodeItem | null>(null)
@@ -128,7 +141,7 @@ export default function OwnerQRPage() {
 
         // Dynamically suggest next table number based on actual DB records
         const existingNumbers = (data.qrs as QRCodeItem[])
-          .filter((q) => q.qrType !== 'RESTAURANT' && q.tableNumber.toLowerCase() !== 'menu')
+          .filter((q) => q.qrType !== 'RESTAURANT' && q.qrType !== 'SCRATCH_CARD' && q.tableNumber.toLowerCase() !== 'menu')
           .map((q) => {
             const match = q.tableNumber.match(/\d+/)
             return match ? parseInt(match[0], 10) : 0
@@ -143,6 +156,20 @@ export default function OwnerQRPage() {
     }
   }
 
+  // Fetch restaurant active coupons to easily link with scratch cards
+  useEffect(() => {
+    if (restaurant?.id) {
+      fetch(`/api/coupons/validate?restaurantId=${encodeURIComponent(restaurant.id)}`)
+        .then((res) => res.json())
+        .then((data) => {
+          if (data?.coupons && Array.isArray(data.coupons)) {
+            setRestaurantCoupons(data.coupons)
+          }
+        })
+        .catch(() => {})
+    }
+  }, [restaurant?.id])
+
   useEffect(() => {
     if (restaurant) {
       fetchQRCodes()
@@ -152,11 +179,14 @@ export default function OwnerQRPage() {
   // Live QR Preview Generator
   const previewTargetUrl = useMemo(() => {
     if (!restaurant) return ''
+    if (qrType === 'SCRATCH_CARD') {
+      return `${origin}/scratch?restaurantId=${encodeURIComponent(restaurant.id)}&coupon=${encodeURIComponent(couponCode || 'LUCKY20')}`
+    }
     if (qrType === 'RESTAURANT') {
       return `${origin}/home?restaurantId=${encodeURIComponent(restaurant.id)}`
     }
     return `${origin}/home?restaurantId=${encodeURIComponent(restaurant.id)}&table=${encodeURIComponent(tableNumber || 'Table')}`
-  }, [origin, restaurant, tableNumber, qrType])
+  }, [origin, restaurant, tableNumber, qrType, couponCode])
 
   useEffect(() => {
     if (!previewTargetUrl) return
@@ -197,9 +227,23 @@ export default function OwnerQRPage() {
       return
     }
 
+    if (qrType === 'SCRATCH_CARD' && !couponCode.trim()) {
+      setSnackbar({ open: true, message: 'Please enter a coupon code or name for the Scratch Card', severity: 'error' })
+      return
+    }
+
+    const isScratch = qrType === 'SCRATCH_CARD'
     const isRestaurantQR = qrType === 'RESTAURANT'
-    const effectiveTableNumber = isRestaurantQR ? 'Menu' : tableNumber.trim()
-    const effectiveLabel = isRestaurantQR
+
+    const effectiveTableNumber = isScratch
+      ? couponCode.trim().toUpperCase()
+      : isRestaurantQR
+      ? 'Menu'
+      : tableNumber.trim()
+
+    const effectiveLabel = isScratch
+      ? (couponDescription.trim() || `Scratch & Win: ${effectiveTableNumber}`)
+      : isRestaurantQR
       ? `${restaurant?.name || 'Restaurant'} — Full Menu QR`
       : (tableLabel.trim() || `${tableNumber.trim()} Dining QR`)
 
@@ -213,6 +257,10 @@ export default function OwnerQRPage() {
           label: effectiveLabel,
           color: selectedColor,
           qrType,
+          couponCode: isScratch ? effectiveTableNumber : undefined,
+          discountType: isScratch ? discountType : undefined,
+          discountValue: isScratch ? Number(discountValue) : undefined,
+          minOrderAmount: isScratch ? Number(minOrderAmount) : undefined,
         }),
       })
       const data = await res.json()
@@ -221,13 +269,15 @@ export default function OwnerQRPage() {
         setQrs([data.qr, ...qrs])
         setSnackbar({
           open: true,
-          message: isRestaurantQR
+          message: isScratch
+            ? `Created Scratch & Win QR for coupon ${effectiveTableNumber}!`
+            : isRestaurantQR
             ? `Created Restaurant Menu QR for ${restaurant?.name}!`
             : `Created QR Code for ${effectiveTableNumber}!`,
           severity: 'success',
         })
         // Increment table number suggestion for table QRs
-        if (!isRestaurantQR) {
+        if (!isRestaurantQR && !isScratch) {
           const match = tableNumber.match(/Table\s*(\d+)/i)
           if (match) {
             const nextNum = parseInt(match[1], 10) + 1
@@ -302,15 +352,26 @@ export default function OwnerQRPage() {
 
   // Filtered QR List
   const filteredQRs = useMemo(() => {
-    if (!searchQuery.trim()) return qrs
+    let list = qrs
+    if (qrFilter !== 'ALL') {
+      list = list.filter((item) => item.qrType === qrFilter)
+    }
+    if (!searchQuery.trim()) return list
     const q = searchQuery.toLowerCase().trim()
-    return qrs.filter(
+    return list.filter(
       (item) =>
         item.tableNumber.toLowerCase().includes(q) ||
         item.label.toLowerCase().includes(q) ||
         item.code.toLowerCase().includes(q)
     )
-  }, [qrs, searchQuery])
+  }, [qrs, searchQuery, qrFilter])
+
+  const counts = useMemo(() => {
+    const tableCount = qrs.filter((q) => q.qrType === 'TABLE' || (!q.qrType && q.tableNumber.toLowerCase() !== 'menu')).length
+    const menuCount = qrs.filter((q) => q.qrType === 'RESTAURANT' || q.tableNumber.toLowerCase() === 'menu').length
+    const scratchCount = qrs.filter((q) => q.qrType === 'SCRATCH_CARD').length
+    return { tableCount, menuCount, scratchCount, allCount: qrs.length }
+  }, [qrs])
 
   // Analytics Stats (strictly calculated from dynamic DB records)
   const stats = useMemo(() => {
@@ -651,7 +712,7 @@ export default function OwnerQRPage() {
                     py: 1,
                     fontWeight: 700,
                     textTransform: 'none',
-                    fontSize: '0.85rem',
+                    fontSize: '0.82rem',
                     bgcolor: qrType === 'TABLE' ? '#ea580c' : 'transparent',
                     color: qrType === 'TABLE' ? '#ffffff' : '#64748b',
                     boxShadow: qrType === 'TABLE' ? '0 2px 8px rgba(234,88,12,0.3)' : 'none',
@@ -672,7 +733,7 @@ export default function OwnerQRPage() {
                     py: 1,
                     fontWeight: 700,
                     textTransform: 'none',
-                    fontSize: '0.85rem',
+                    fontSize: '0.82rem',
                     bgcolor: qrType === 'RESTAURANT' ? '#ea580c' : 'transparent',
                     color: qrType === 'RESTAURANT' ? '#ffffff' : '#64748b',
                     boxShadow: qrType === 'RESTAURANT' ? '0 2px 8px rgba(234,88,12,0.3)' : 'none',
@@ -682,6 +743,27 @@ export default function OwnerQRPage() {
                   }}
                 >
                   Menu
+                </Button>
+                <Button
+                  fullWidth
+                  size="small"
+                  onClick={() => setQrType('SCRATCH_CARD')}
+                  startIcon={<CardGiftcardIcon sx={{ fontSize: 16 }} />}
+                  sx={{
+                    borderRadius: '10px',
+                    py: 1,
+                    fontWeight: 700,
+                    textTransform: 'none',
+                    fontSize: '0.82rem',
+                    bgcolor: qrType === 'SCRATCH_CARD' ? '#ea580c' : 'transparent',
+                    color: qrType === 'SCRATCH_CARD' ? '#ffffff' : '#64748b',
+                    boxShadow: qrType === 'SCRATCH_CARD' ? '0 2px 8px rgba(234,88,12,0.3)' : 'none',
+                    '&:hover': {
+                      bgcolor: qrType === 'SCRATCH_CARD' ? '#c2410c' : '#e2e8f0',
+                    },
+                  }}
+                >
+                  Scratch Card
                 </Button>
               </Box>
 
@@ -744,6 +826,165 @@ export default function OwnerQRPage() {
                   </Box>
                 )}
 
+                {qrType === 'SCRATCH_CARD' && (
+                  <>
+                    <Box sx={{ bgcolor: '#fff7ed', p: 1.8, borderRadius: '10px', border: '1px solid #fed7aa' }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, mb: 0.5 }}>
+                        <CelebrationIcon sx={{ fontSize: 18, color: '#ea580c' }} />
+                        <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#c2410c' }}>
+                          Interactive Scratch & Win QR Card
+                        </Typography>
+                      </Box>
+                      <Typography variant="caption" sx={{ color: '#9a3412', fontWeight: 600 }}>
+                        Customers scan this QR code on dining stands to open a scratch card UI on their phone. Once scratched, the secret coupon is revealed for them to copy and apply while placing their order!
+                      </Typography>
+                    </Box>
+
+                    {/* Coupon Code Input & Existing Suggestions */}
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.6, display: 'block' }}>
+                        Coupon Code / Name:
+                      </Typography>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        placeholder="e.g. LUCKY20, WELCOME50, WEEKENDDEAL"
+                        sx={{
+                          '& .MuiOutlinedInput-root': { borderRadius: '8px', fontFamily: 'monospace', fontWeight: 700 },
+                        }}
+                      />
+                      {restaurantCoupons.length > 0 && (
+                        <Box sx={{ mt: 1 }}>
+                          <Typography variant="caption" sx={{ color: '#64748b', fontWeight: 600, display: 'block', mb: 0.5 }}>
+                            Quick pick active restaurant coupon:
+                          </Typography>
+                          <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap' }}>
+                            {restaurantCoupons.slice(0, 4).map((cpn) => (
+                              <Chip
+                                key={cpn.id || cpn.code}
+                                label={cpn.code}
+                                size="small"
+                                onClick={() => {
+                                  setCouponCode(cpn.code)
+                                  setCouponDescription(cpn.description || `${cpn.discountValue}% OFF`)
+                                  setDiscountType(cpn.discountType || 'PERCENTAGE')
+                                  setDiscountValue(cpn.discountValue || 20)
+                                  setMinOrderAmount(cpn.minOrderAmount || 0)
+                                }}
+                                sx={{
+                                  fontSize: '0.72rem',
+                                  fontWeight: 800,
+                                  cursor: 'pointer',
+                                  bgcolor: couponCode === cpn.code ? '#ea580c' : '#f1f5f9',
+                                  color: couponCode === cpn.code ? '#ffffff' : '#334155',
+                                  border: '1px solid #e2e8f0',
+                                }}
+                              />
+                            ))}
+                          </Box>
+                        </Box>
+                      )}
+                    </Box>
+
+                    {/* Offer Title & Teaser */}
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.6, display: 'block' }}>
+                        Offer Headline / Teaser:
+                      </Typography>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        value={couponDescription}
+                        onChange={(e) => setCouponDescription(e.target.value)}
+                        placeholder="e.g. Flat 20% OFF on all menu items, ₹50 OFF"
+                        sx={{
+                          '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                        }}
+                      />
+                    </Box>
+
+                    {/* Discount Configuration (Type + Value) */}
+                    <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+                      <Box>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.6, display: 'block' }}>
+                          Discount Type:
+                        </Typography>
+                        <Box sx={{ display: 'flex', bgcolor: '#f1f5f9', p: 0.4, borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                          <Button
+                            fullWidth
+                            size="small"
+                            onClick={() => setDiscountType('PERCENTAGE')}
+                            sx={{
+                              borderRadius: '6px',
+                              py: 0.5,
+                              fontWeight: 700,
+                              fontSize: '0.75rem',
+                              textTransform: 'none',
+                              bgcolor: discountType === 'PERCENTAGE' ? '#ea580c' : 'transparent',
+                              color: discountType === 'PERCENTAGE' ? '#ffffff' : '#64748b',
+                            }}
+                          >
+                            % Percent
+                          </Button>
+                          <Button
+                            fullWidth
+                            size="small"
+                            onClick={() => setDiscountType('FLAT')}
+                            sx={{
+                              borderRadius: '6px',
+                              py: 0.5,
+                              fontWeight: 700,
+                              fontSize: '0.75rem',
+                              textTransform: 'none',
+                              bgcolor: discountType === 'FLAT' ? '#ea580c' : 'transparent',
+                              color: discountType === 'FLAT' ? '#ffffff' : '#64748b',
+                            }}
+                          >
+                            ₹ Flat
+                          </Button>
+                        </Box>
+                      </Box>
+
+                      <Box>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.6, display: 'block' }}>
+                          {discountType === 'PERCENTAGE' ? 'Discount %:' : 'Discount (₹):'}
+                        </Typography>
+                        <TextField
+                          size="small"
+                          fullWidth
+                          type="number"
+                          value={discountValue}
+                          onChange={(e) => setDiscountValue(e.target.value)}
+                          placeholder="20"
+                          sx={{
+                            '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                          }}
+                        />
+                      </Box>
+                    </Box>
+
+                    {/* Minimum Order */}
+                    <Box>
+                      <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.6, display: 'block' }}>
+                        Minimum Order Amount (₹):
+                      </Typography>
+                      <TextField
+                        size="small"
+                        fullWidth
+                        type="number"
+                        value={minOrderAmount}
+                        onChange={(e) => setMinOrderAmount(e.target.value)}
+                        placeholder="0 for no minimum"
+                        sx={{
+                          '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                        }}
+                      />
+                    </Box>
+                  </>
+                )}
+
                 {/* Color Palette Selector */}
                 <Box>
                   <Typography variant="caption" sx={{ fontWeight: 700, color: '#334155', mb: 0.8, display: 'block' }}>
@@ -787,7 +1028,7 @@ export default function OwnerQRPage() {
                 }}
               >
                 <Typography variant="caption" sx={{ fontWeight: 800, color: '#94a3b8', letterSpacing: '0.05em', textTransform: 'uppercase' }}>
-                  {qrType === 'RESTAURANT' ? 'Menu QR Preview' : 'Live Stand Preview'}
+                  {qrType === 'SCRATCH_CARD' ? 'Scratch Card QR Preview' : qrType === 'RESTAURANT' ? 'Menu QR Preview' : 'Live Stand Preview'}
                 </Typography>
 
                 {/* QR Visual */}
@@ -820,13 +1061,45 @@ export default function OwnerQRPage() {
                 </Box>
 
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                  {qrType === 'RESTAURANT' ? (restaurant?.name || 'Restaurant') : (tableNumber || 'Table')}
+                  {qrType === 'SCRATCH_CARD'
+                    ? `🎁 Scratch & Win: ${couponCode || 'LUCKY20'}`
+                    : qrType === 'RESTAURANT'
+                    ? (restaurant?.name || 'Restaurant')
+                    : (tableNumber || 'Table')}
                 </Typography>
-                <Typography variant="caption" sx={{ color: '#64748b' }}>
-                  {qrType === 'RESTAURANT'
+                <Typography variant="caption" sx={{ color: '#64748b', display: 'block' }}>
+                  {qrType === 'SCRATCH_CARD'
+                    ? 'Scan with phone camera & rub to unlock coupon code!'
+                    : qrType === 'RESTAURANT'
                     ? 'Scan to Browse Menu & Order Online'
                     : 'Scan to View Menu & Place Order'}
                 </Typography>
+
+                {qrType === 'SCRATCH_CARD' && (
+                  <Button
+                    size="small"
+                    variant="outlined"
+                    startIcon={<AutoAwesomeIcon sx={{ fontSize: 14 }} />}
+                    onClick={() => {
+                      if (restaurant) {
+                        window.open(`/scratch?restaurantId=${encodeURIComponent(restaurant.id)}&coupon=${encodeURIComponent(couponCode || 'LUCKY20')}`, '_blank')
+                      }
+                    }}
+                    sx={{
+                      mt: 1.5,
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 700,
+                      fontSize: '0.78rem',
+                      borderColor: '#fed7aa',
+                      bgcolor: '#fff7ed',
+                      color: '#c2410c',
+                      '&:hover': { bgcolor: '#ffedd5', borderColor: '#fdba74' },
+                    }}
+                  >
+                    Open Live Scratch UI Preview
+                  </Button>
+                )}
               </Box>
 
               {/* Action Buttons */}
@@ -834,7 +1107,11 @@ export default function OwnerQRPage() {
                 <Button
                   variant="contained"
                   fullWidth
-                  disabled={isSubmitting || (qrType === 'TABLE' && !tableNumber.trim())}
+                  disabled={
+                    isSubmitting ||
+                    (qrType === 'TABLE' && !tableNumber.trim()) ||
+                    (qrType === 'SCRATCH_CARD' && !couponCode.trim())
+                  }
                   onClick={handleCreateQR}
                   startIcon={<AddIcon />}
                   sx={{
@@ -848,9 +1125,11 @@ export default function OwnerQRPage() {
                 >
                   {isSubmitting
                     ? 'Generating...'
+                    : qrType === 'SCRATCH_CARD'
+                    ? `Save Scratch Card QR (${couponCode || 'LUCKY20'})`
                     : qrType === 'RESTAURANT'
-                      ? `Save Menu QR`
-                      : `Save & Add ${tableNumber || 'Table'} QR`}
+                    ? `Save Menu QR`
+                    : `Save & Add ${tableNumber || 'Table'} QR`}
                 </Button>
 
                 <Box sx={{ display: 'flex', gap: 1 }}>
@@ -933,16 +1212,16 @@ export default function OwnerQRPage() {
               >
                 <Box>
                   <Typography variant="h6" sx={{ fontWeight: 800, color: '#0f172a', fontSize: '1.05rem', display: 'flex', alignItems: 'center', gap: 1 }}>
-                    Active Table QR Codes {loading ? <Skeleton variant="rounded" width={32} height={22} sx={{ borderRadius: '6px' }} /> : `(${filteredQRs.length})`}
+                    Active QR Codes {loading ? <Skeleton variant="rounded" width={32} height={22} sx={{ borderRadius: '6px' }} /> : `(${filteredQRs.length})`}
                   </Typography>
                   <Typography variant="caption" sx={{ color: '#64748b' }}>
-                    Monitor scan volume per table and print stands
+                    Monitor scan volume per table or scratch card and print stands
                   </Typography>
                 </Box>
 
                 <TextField
                   size="small"
-                  placeholder="Filter table..."
+                  placeholder="Filter by label or code..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   InputProps={{
@@ -955,6 +1234,60 @@ export default function OwnerQRPage() {
                   sx={{
                     maxWidth: 220,
                     '& .MuiOutlinedInput-root': { borderRadius: '8px' },
+                  }}
+                />
+              </Box>
+
+              {/* Filter Category Chips */}
+              <Box sx={{ display: 'flex', gap: 0.8, flexWrap: 'wrap', mb: 2 }}>
+                <Chip
+                  label={`All (${counts.allCount})`}
+                  size="small"
+                  onClick={() => setQrFilter('ALL')}
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '0.74rem',
+                    cursor: 'pointer',
+                    bgcolor: qrFilter === 'ALL' ? '#0f172a' : '#f1f5f9',
+                    color: qrFilter === 'ALL' ? '#ffffff' : '#475569',
+                  }}
+                />
+                <Chip
+                  label={`Tables (${counts.tableCount})`}
+                  size="small"
+                  onClick={() => setQrFilter('TABLE')}
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '0.74rem',
+                    cursor: 'pointer',
+                    bgcolor: qrFilter === 'TABLE' ? '#0f172a' : '#f1f5f9',
+                    color: qrFilter === 'TABLE' ? '#ffffff' : '#475569',
+                  }}
+                />
+                <Chip
+                  label={`Menu (${counts.menuCount})`}
+                  size="small"
+                  onClick={() => setQrFilter('RESTAURANT')}
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '0.74rem',
+                    cursor: 'pointer',
+                    bgcolor: qrFilter === 'RESTAURANT' ? '#0f172a' : '#f1f5f9',
+                    color: qrFilter === 'RESTAURANT' ? '#ffffff' : '#475569',
+                  }}
+                />
+                <Chip
+                  icon={<CardGiftcardIcon sx={{ fontSize: '14px !important', color: qrFilter === 'SCRATCH_CARD' ? '#ffffff !important' : '#ea580c !important' }} />}
+                  label={`Scratch Cards (${counts.scratchCount})`}
+                  size="small"
+                  onClick={() => setQrFilter('SCRATCH_CARD')}
+                  sx={{
+                    fontWeight: 700,
+                    fontSize: '0.74rem',
+                    cursor: 'pointer',
+                    bgcolor: qrFilter === 'SCRATCH_CARD' ? '#ea580c' : '#fff7ed',
+                    color: qrFilter === 'SCRATCH_CARD' ? '#ffffff' : '#c2410c',
+                    border: '1px solid #fed7aa',
                   }}
                 />
               </Box>
@@ -1001,7 +1334,7 @@ export default function OwnerQRPage() {
                 ) : filteredQRs.length === 0 ? (
                   <Box sx={{ textAlign: 'center', py: 8, color: '#94a3b8' }}>
                     <Typography sx={{ fontWeight: 600 }}>No QR codes found</Typography>
-                    <Typography variant="caption">Use the generator on the left to add table QR codes</Typography>
+                    <Typography variant="caption">Use the generator on the left to add table or scratch card QR codes</Typography>
                   </Box>
                 ) : (
                   <Stack spacing={1.8}>
@@ -1038,16 +1371,29 @@ export default function OwnerQRPage() {
                             }}
                           />
                           <Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
                               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                                {item.tableNumber}
+                                {item.qrType === 'SCRATCH_CARD' ? `🎁 ${item.tableNumber}` : item.tableNumber}
                               </Typography>
+                              <Chip
+                                label={item.qrType === 'SCRATCH_CARD' ? 'Scratch Card' : item.qrType === 'RESTAURANT' ? 'Menu QR' : 'Table QR'}
+                                size="small"
+                                sx={{
+                                  fontSize: '0.65rem',
+                                  height: 18,
+                                  fontWeight: 800,
+                                  bgcolor: item.qrType === 'SCRATCH_CARD' ? '#fdf2f8' : item.qrType === 'RESTAURANT' ? '#eff6ff' : '#f8fafc',
+                                  color: item.qrType === 'SCRATCH_CARD' ? '#db2777' : item.qrType === 'RESTAURANT' ? '#2563eb' : '#475569',
+                                  border: '1px solid',
+                                  borderColor: item.qrType === 'SCRATCH_CARD' ? '#fbcfe8' : item.qrType === 'RESTAURANT' ? '#bfdbfe' : '#e2e8f0',
+                                }}
+                              />
                               <Chip
                                 label={item.code}
                                 size="small"
                                 sx={{
-                                  fontSize: '0.68rem',
-                                  height: 20,
+                                  fontSize: '0.65rem',
+                                  height: 18,
                                   fontFamily: 'monospace',
                                   bgcolor: '#f1f5f9',
                                   color: '#475569',
@@ -1098,12 +1444,12 @@ export default function OwnerQRPage() {
                         {/* Right: Quick actions */}
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.8, alignSelf: { xs: 'flex-end', sm: 'center' } }}>
                           {/* Test Scan button */}
-                          <Tooltip title="Test Scan & Open Menu (+1 scan)">
+                          <Tooltip title={item.qrType === 'SCRATCH_CARD' ? 'Test Scratch Card UI (+1 scan)' : 'Test Scan & Open Menu (+1 scan)'}>
                             <Button
                               size="small"
                               variant="outlined"
                               onClick={() => handleTestScan(item)}
-                              startIcon={<OpenInNewIcon sx={{ fontSize: 14 }} />}
+                              startIcon={item.qrType === 'SCRATCH_CARD' ? <CardGiftcardIcon sx={{ fontSize: 14 }} /> : <OpenInNewIcon sx={{ fontSize: 14 }} />}
                               sx={{
                                 borderRadius: '6px',
                                 textTransform: 'none',
@@ -1111,11 +1457,12 @@ export default function OwnerQRPage() {
                                 fontSize: '0.74rem',
                                 py: 0.4,
                                 px: 1,
-                                borderColor: '#e2e8f0',
-                                color: '#0f172a',
+                                borderColor: item.qrType === 'SCRATCH_CARD' ? '#fbcfe8' : '#e2e8f0',
+                                color: item.qrType === 'SCRATCH_CARD' ? '#db2777' : '#0f172a',
+                                bgcolor: item.qrType === 'SCRATCH_CARD' ? '#fdf2f8' : 'transparent',
                               }}
                             >
-                              Test (+1)
+                              {item.qrType === 'SCRATCH_CARD' ? 'Test Scratch' : 'Test (+1)'}
                             </Button>
                           </Tooltip>
 
@@ -1179,16 +1526,17 @@ export default function OwnerQRPage() {
           <>
             <DialogTitle sx={{ pb: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="subtitle1" sx={{ fontWeight: 800, color: '#0f172a' }}>
-                Printable Table Stand Card
+                {selectedQRForStand.qrType === 'SCRATCH_CARD' ? 'Printable Scratch & Win Stand Card' : 'Printable Table Stand Card'}
               </Typography>
               <Chip
-                label={selectedQRForStand.tableNumber}
+                label={selectedQRForStand.qrType === 'SCRATCH_CARD' ? `🎁 ${selectedQRForStand.tableNumber}` : selectedQRForStand.tableNumber}
                 size="small"
                 sx={{
-                  bgcolor: '#fff7ed',
-                  color: '#ea580c',
+                  bgcolor: selectedQRForStand.qrType === 'SCRATCH_CARD' ? '#fdf2f8' : '#fff7ed',
+                  color: selectedQRForStand.qrType === 'SCRATCH_CARD' ? '#db2777' : '#ea580c',
                   fontWeight: 800,
-                  border: '1px solid #ffedd5',
+                  border: '1px solid',
+                  borderColor: selectedQRForStand.qrType === 'SCRATCH_CARD' ? '#fbcfe8' : '#ffedd5',
                 }}
               />
             </DialogTitle>
@@ -1199,12 +1547,15 @@ export default function OwnerQRPage() {
                 id="printable-table-tent"
                 sx={{
                   bgcolor: '#ffffff',
-                  border: '2px solid #0f172a',
+                  border: selectedQRForStand.qrType === 'SCRATCH_CARD' ? '2.5px solid #ea580c' : '2px solid #0f172a',
                   borderRadius: '16px',
                   p: 3,
                   textAlign: 'center',
                   boxShadow: '0 8px 30px rgba(0,0,0,0.08)',
                   position: 'relative',
+                  background: selectedQRForStand.qrType === 'SCRATCH_CARD'
+                    ? 'radial-gradient(circle at 50% 0%, #fff7ed 0%, #ffffff 80%)'
+                    : '#ffffff',
                 }}
               >
                 {/* Brand Header */}
@@ -1221,18 +1572,22 @@ export default function OwnerQRPage() {
                       justifyContent: 'center',
                     }}
                   >
-                    🍽️
+                    {selectedQRForStand.qrType === 'SCRATCH_CARD' ? '🎁' : '🍽️'}
                   </Box>
                   <Typography variant="h6" sx={{ fontWeight: 900, color: '#0f172a', letterSpacing: '-0.02em' }}>
                     {restaurant?.name || 'DineDirect'}
                   </Typography>
                 </Box>
 
-                {/* Table Badge */}
+                {/* Table or Promo Badge */}
                 <Chip
-                  label={selectedQRForStand.tableNumber.toUpperCase()}
+                  label={
+                    selectedQRForStand.qrType === 'SCRATCH_CARD'
+                      ? `LUCKY SCRATCH • CODE: ${selectedQRForStand.tableNumber.toUpperCase()}`
+                      : selectedQRForStand.tableNumber.toUpperCase()
+                  }
                   sx={{
-                    bgcolor: '#0f172a',
+                    bgcolor: selectedQRForStand.qrType === 'SCRATCH_CARD' ? '#ea580c' : '#0f172a',
                     color: '#ffffff',
                     fontWeight: 900,
                     fontSize: '0.85rem',
@@ -1264,13 +1619,19 @@ export default function OwnerQRPage() {
 
                 {/* Call to action instruction */}
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#0f172a', mb: 0.5 }}>
-                  SCAN TO VIEW MENU & ORDER
+                  {selectedQRForStand.qrType === 'SCRATCH_CARD'
+                    ? 'SCAN WITH CAMERA TO SCRATCH & WIN!'
+                    : 'SCAN TO VIEW MENU & ORDER'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#64748b', display: 'block', lineHeight: 1.4 }}>
-                  Point your phone camera or Google Lens to view full menu with photos and order directly to this table.
+                  {selectedQRForStand.qrType === 'SCRATCH_CARD'
+                    ? 'Point your phone camera to open our live lucky scratch card, uncover your secret dining discount code, and apply it directly on your order!'
+                    : 'Point your phone camera or Google Lens to view full menu with photos and order directly to this table.'}
                 </Typography>
                 <Typography variant="caption" sx={{ color: '#ea580c', fontWeight: 800, mt: 1, display: 'block' }}>
-                  No app download needed • Instant Service
+                  {selectedQRForStand.qrType === 'SCRATCH_CARD'
+                    ? '✨ Instant Discount • Scratch With Finger on Phone'
+                    : 'No app download needed • Instant Service'}
                 </Typography>
               </Box>
             </DialogContent>

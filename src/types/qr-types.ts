@@ -1,4 +1,4 @@
-export type QRType = 'TABLE' | 'RESTAURANT'
+export type QRType = 'TABLE' | 'RESTAURANT' | 'SCRATCH_CARD'
 
 export interface QRCodeItem {
   id: string
@@ -12,6 +12,11 @@ export interface QRCodeItem {
   qrType: QRType
   createdAt: string
   lastScannedAt: string | null
+  couponDetails?: {
+    discountType: 'PERCENTAGE' | 'FLAT'
+    discountValue: number
+    minOrderAmount: number
+  }
 }
 
 export interface CreateQRCodePayload {
@@ -19,6 +24,11 @@ export interface CreateQRCodePayload {
   label?: string
   color?: string
   qrType?: QRType
+  couponCode?: string
+  discountType?: 'PERCENTAGE' | 'FLAT'
+  discountValue?: number
+  minOrderAmount?: number
+  description?: string
 }
 
 export interface TableOption {
